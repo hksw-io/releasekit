@@ -21,19 +21,30 @@ enum Tokens {
     }
 
     enum Motion {
-        // A staggered entrance reads as welcome on a phone and as theatre on a Mac, where sheets
-        // are expected to be ready when they appear. macOS gets roughly half the travel and half
-        // the total run.
         #if os(macOS)
-        static let featureBaseDelay: Double = 0.14
-        static let featureStaggerDelay: Double = 0.07
-        static let maxFeatureStaggerDelay: Double = 0.28
-        static let revealDuration: Double = 0.34
-        static let revealOffset: CGFloat = 16
+        // A Mac sheet travels less than a phone one — 20pt rather than 38 — but it still reveals
+        // at a readable pace.
+        //
+        // The first row arrives essentially at once: a wait before anything happens reads as the
+        // sheet being slow to draw, not as choreography.
+        //
+        // Three things make the cascade read as a stagger rather than a fade. The gap between rows
+        // is a large fraction of the fade duration, so each arrival is distinct instead of smeared
+        // into its neighbours. The cap is high enough that around eight rows get their own start
+        // time — capping early makes every row past it fire at once, which is precisely what turns
+        // a stagger back into a fade. And the travel is far enough to be seen as movement; a row
+        // that only fades has nothing to stagger visually.
+        static let featureBaseDelay: Double = 0.04
+        static let featureStaggerDelay: Double = 0.18
+        static let maxFeatureStaggerDelay: Double = 1.44
+        static let revealDuration: Double = 0.45
+        static let revealOffset: CGFloat = 20
         #else
         static let featureBaseDelay: Double = 0.3
         static let featureStaggerDelay: Double = 0.17
-        static let maxFeatureStaggerDelay: Double = 0.68
+        // Eight rows deep rather than four. At four, every row past the fourth started at the same
+        // instant, so a long feature list stopped cascading and just faded in.
+        static let maxFeatureStaggerDelay: Double = 1.19
         static let revealDuration: Double = 0.48
         static let revealOffset: CGFloat = 38
         #endif
