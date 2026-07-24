@@ -35,7 +35,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
     @State private var featuresVisible = false
-    @State private var containerWidth: CGFloat = 0
+    @State private var containerWidth: CGFloat = Tokens.Platform.assumedContainerWidth
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = Tokens.Platform.iconSize
     @ScaledMetric(relativeTo: .body) private var featureIconSize: CGFloat = Tokens.Platform.featureIconSize
@@ -59,71 +59,79 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         self.onDismiss = onDismiss
     }
 
-    /// The composed sheet: background, scrolling content, and the pinned footer.
+    /// The composed sheet: background behind a scrolling column, with the footer pinned as a bottom
+    /// bar.
+    ///
+    /// The background is a sibling in the `ZStack` rather than a `.background` on the scroll view.
+    /// That placement is load-bearing: applied to the scroll view, the bar's scroll edge effect has
+    /// no surface to composite against and leaves a visible seam and a ghost of the rows behind it.
     public var body: some View {
-        ScrollView(.vertical) {
-            VStack(spacing: self.contentSpacing) {
-                ReleaseHeaderSection(
-                    content: self.content,
-                    iconSize: self.iconSize,
-                    style: self.style)
-                ReleaseFeatureList(
-                    features: self.content.features,
-                    featureSpacing: self.featureSpacing,
-                    featureIconSize: self.featureIconSize,
-                    featuresVisible: self.featuresVisible,
-                    reduceMotion: self.reduceMotion,
-                    style: self.style)
-            }
-            // Mac users expect to be able to select and copy release copy out of a window.
-            .textSelection(.enabled)
-            .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, self.horizontalPadding)
-            .padding(.top, self.topPadding)
-            .padding(.bottom, self.bottomPadding)
-        }
-        // The Mac's overlay scroller is the conventional signal that a list continues, and it already
-        // hides itself when idle. iPhone leans on the scroll edge effect instead.
-        #if os(macOS)
-        .scrollIndicators(.automatic, axes: .vertical)
-        #else
-        .scrollIndicators(.never, axes: .vertical)
-        #endif
-        .scrollBounceBehavior(.basedOnSize)
-        .scrollEdgeEffectStyle(.hard, for: .bottom)
-        .background {
+        ZStack {
             ReleaseBackgroundView(
                 background: self.background,
                 reduceMotion: self.reduceMotion,
                 brandColor: self.style.tint,
                 colorScheme: self.colorScheme)
-        }
-        .safeAreaBar(edge: .bottom) {
-            ReleaseFooterSection(
-                content: self.content,
-                style: self.style,
-                onDismiss: self.onDismiss
-            )
-            .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, self.horizontalPadding)
-        }
-        .onGeometryChange(for: CGFloat.self) { geometry in
-            geometry.size.width
-        } action: { newWidth in
-            if self.containerWidth != newWidth {
-                self.containerWidth = newWidth
+
+            ScrollView(.vertical) {
+                VStack(spacing: self.contentSpacing) {
+                    ReleaseHeaderSection(
+                        content: self.content,
+                        iconSize: self.iconSize,
+                        style: self.style)
+                    ReleaseFeatureList(
+                        features: self.content.features,
+                        featureSpacing: self.featureSpacing,
+                        featureIconSize: self.featureIconSize,
+                        featuresVisible: self.featuresVisible,
+                        reduceMotion: self.reduceMotion,
+                        style: self.style)
+                }
+                // Mac users expect to be able to select and copy release copy out of a window.
+                .textSelection(.enabled)
+                .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, self.horizontalPadding)
+                .padding(.top, self.topPadding)
+                .padding(.bottom, self.bottomPadding)
+            }
+            // The Mac's overlay scroller is the conventional signal that a list continues, and it
+            // already hides itself when idle. iPhone leans on the scroll edge effect instead.
+            #if os(macOS)
+            .scrollIndicators(.automatic, axes: .vertical)
+            #else
+            .scrollIndicators(.never, axes: .vertical)
+            #endif
+            .scrollBounceBehavior(.basedOnSize)
+            .safeAreaBar(edge: .bottom) {
+                ReleaseFooterSection(
+                    content: self.content,
+                    style: self.style,
+                    onDismiss: self.onDismiss
+                )
+                .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+                .padding(.horizontal, self.horizontalPadding)
+                .frame(maxWidth: .infinity)
+            }
+            // After the bar, not before: the effect applies to the edge the bar creates.
+            .scrollEdgeEffectStyle(.hard, for: .bottom)
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                geometry.size.width
+            } action: { newWidth in
+                if self.containerWidth != newWidth {
+                    self.containerWidth = newWidth
+                }
             }
         }
+        .clipped()
         .interactiveDismissDisabled()
         .releaseTint(self.style.tint)
         #if os(macOS)
         .frame(
             minWidth: Tokens.Platform.sheetMinWidth,
-            minHeight: Tokens.Platform.sheetMinHeight
-        )
-        .presentationSizing(.form)
+            idealWidth: Tokens.Platform.sheetIdealWidth,
+            minHeight: Tokens.Platform.sheetMinHeight,
+            idealHeight: Tokens.Platform.sheetIdealHeight)
         #endif
         .onAppear {
             self.featuresVisible = true
@@ -156,7 +164,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             for: self.containerWidth,
             compact: self.compactHorizontalPadding,
             regular: self.regularHorizontalPadding,
-            breakpoint: Tokens.Platform.compactWidthBreakpoint)
+            breakpoint: Tokens.Layout.compactWidthBreakpoint)
     }
 }
 

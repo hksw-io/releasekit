@@ -12,7 +12,7 @@ Platform idioms and API currency for iOS 26 / macOS 26. The package had platform
 
 - Keyboard support, which the sheet previously had none of. Return activates the footer button on both platforms. On macOS, Escape also runs `onDismiss` — it is bound to the same closure rather than dismissing the sheet natively, so the caller's bookkeeping (typically `markAsShown()`) still runs.
 - Text selection for the title and feature rows, so release copy can be copied out of a Mac window.
-- `presentationSizing(.form)` on macOS over a 460x580 floor, replacing a 320x560 minimum that was an iPhone SE width used as a Mac sheet size.
+- A Mac-shaped sheet size: 560x520 ideal over a 480x420 floor, replacing a 320x560 minimum that was an iPhone shape on a desktop.
 
 ### Changed
 

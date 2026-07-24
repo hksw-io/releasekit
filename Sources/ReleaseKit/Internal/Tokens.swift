@@ -15,9 +15,11 @@ enum Tokens {
         static let contentMaxWidth: CGFloat = 560
         static let compactHorizontalPadding: CGFloat = 16
         static let regularHorizontalPadding: CGFloat = 24
+        static let compactWidthBreakpoint: CGFloat = 390
         static let footerControlSpacing: CGFloat = Spacing.medium
         static let footerTopPadding: CGFloat = 20
-        static let footerBottomPadding: CGFloat = Spacing.medium
+        /// The bar already sits against the sheet edge; padding here only lifts the button off it.
+        static let footerBottomPadding: CGFloat = 0
     }
 
     enum Motion {
@@ -63,11 +65,15 @@ enum Tokens {
         static let featureSpacing: CGFloat = 20
         static let topPadding: CGFloat = 32
         static let bottomPadding: CGFloat = 20
-        /// Below this the sheet tightens to compact padding. A Mac sheet is never as narrow as a
-        /// phone, so the threshold sits well above the iPhone one.
-        static let compactWidthBreakpoint: CGFloat = 480
-        static let sheetMinWidth: CGFloat = 460
-        static let sheetMinHeight: CGFloat = 580
+        /// A Mac window is wider than it is tall. A 320x580 floor was an iPhone shape on a desktop.
+        static let sheetMinWidth: CGFloat = 480
+        static let sheetMinHeight: CGFloat = 420
+        static let sheetIdealWidth: CGFloat = 560
+        static let sheetIdealHeight: CGFloat = 520
+        /// What to assume before the container reports its width, so the first layout pass already
+        /// picks the padding the measured pass will confirm. A Mac sheet is never narrower than
+        /// `sheetMinWidth`, which is past the compact breakpoint.
+        static let assumedContainerWidth: CGFloat = sheetIdealWidth
         #else
         static let iconSize: CGFloat = 100
         static let featureIconSize: CGFloat = 35
@@ -75,8 +81,9 @@ enum Tokens {
         static let featureSpacing: CGFloat = 32
         static let topPadding: CGFloat = 32
         static let bottomPadding: CGFloat = 24
-        /// Roughly the widest iPhone in portrait, so only the largest phones get regular padding.
-        static let compactWidthBreakpoint: CGFloat = 390
+        /// Phone width, which is what a sheet is on the overwhelming majority of iOS presentations.
+        /// iPad still corrects itself on the measured pass.
+        static let assumedContainerWidth: CGFloat = 0
         #endif
     }
 
