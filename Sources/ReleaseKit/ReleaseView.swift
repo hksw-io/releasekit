@@ -79,7 +79,13 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             .padding(.top, self.topPadding)
             .padding(.bottom, self.bottomPadding)
         }
+        // The Mac's overlay scroller is the conventional signal that a list continues, and it already
+        // hides itself when idle. iPhone leans on the scroll edge effect instead.
+        #if os(macOS)
+        .scrollIndicators(.automatic, axes: .vertical)
+        #else
         .scrollIndicators(.never, axes: .vertical)
+        #endif
         .scrollBounceBehavior(.basedOnSize)
         .scrollEdgeEffectStyle(.hard, for: .bottom)
         .background {
