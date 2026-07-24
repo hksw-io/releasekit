@@ -10,8 +10,8 @@ public struct ReleaseBackgroundContext {
     public init(
         reduceMotion: Bool,
         brandColor: Color? = nil,
-        colorScheme: ColorScheme = .light)
-    {
+        colorScheme: ColorScheme = .light
+    ) {
         self.reduceMotion = reduceMotion
         self.brandColor = brandColor
         self.colorScheme = colorScheme
@@ -116,24 +116,24 @@ public struct ReleaseBackground {
 
     public static func softGradient(
         brand: Color? = nil,
-        palette: ReleaseGradientPalette? = nil) -> Self
-    {
+        palette: ReleaseGradientPalette? = nil
+    ) -> Self {
         Self(storage: .softGradient(brand: brand, palette: palette))
     }
 
     public static func linearGradient(
         colors: [Color],
         startPoint: UnitPoint = .topLeading,
-        endPoint: UnitPoint = .bottomTrailing) -> Self
-    {
+        endPoint: UnitPoint = .bottomTrailing
+    ) -> Self {
         Self(storage: .linearGradient(colors: colors, startPoint: startPoint, endPoint: endPoint))
     }
 
     public static func animatedGradient(
         brand: Color? = nil,
         palette: ReleaseGradientPalette? = nil,
-        motion: ReleaseGradientMotion = .standard) -> Self
-    {
+        motion: ReleaseGradientMotion = .standard
+    ) -> Self {
         Self(storage: .animatedGradient(brand: brand, palette: palette, motion: motion))
     }
 
@@ -141,8 +141,8 @@ public struct ReleaseBackground {
     public static func animatedMesh(
         primary: Color = .blue,
         secondary: Color = .purple,
-        accent: Color = .mint) -> Self
-    {
+        accent: Color = .mint
+    ) -> Self {
         self.animatedGradient(
             palette: ReleaseGradientPalette(
                 light: .init(
@@ -154,11 +154,12 @@ public struct ReleaseBackground {
     }
 
     public static func custom<Background: View>(
-        @ViewBuilder _ background: @escaping (ReleaseBackgroundContext) -> Background) -> Self
-    {
-        Self(storage: .custom { context in
-            AnyView(background(context))
-        })
+        @ViewBuilder _ background: @escaping (ReleaseBackgroundContext) -> Background
+    ) -> Self {
+        Self(
+            storage: .custom { context in
+                AnyView(background(context))
+            })
     }
 }
 
@@ -169,26 +170,29 @@ extension ReleaseBackground {
         case .system:
             AnyView(Tokens.background)
         case let .softGradient(brand, palette):
-            AnyView(ReleaseSoftGradientBackground(
-                tones: ReleaseGradientPaletteResolver.tones(
-                    brand: brand,
-                    palette: palette,
-                    context: context),
-                colorScheme: context.colorScheme))
+            AnyView(
+                ReleaseSoftGradientBackground(
+                    tones: ReleaseGradientPaletteResolver.tones(
+                        brand: brand,
+                        palette: palette,
+                        context: context),
+                    colorScheme: context.colorScheme))
         case let .linearGradient(colors, startPoint, endPoint):
-            AnyView(ReleaseLinearGradientBackground(
-                colors: colors,
-                startPoint: startPoint,
-                endPoint: endPoint))
+            AnyView(
+                ReleaseLinearGradientBackground(
+                    colors: colors,
+                    startPoint: startPoint,
+                    endPoint: endPoint))
         case let .animatedGradient(brand, palette, motion):
-            AnyView(ReleaseAnimatedGradientBackground(
-                tones: ReleaseGradientPaletteResolver.tones(
-                    brand: brand,
-                    palette: palette,
-                    context: context),
-                colorScheme: context.colorScheme,
-                motion: motion,
-                reduceMotion: context.reduceMotion))
+            AnyView(
+                ReleaseAnimatedGradientBackground(
+                    tones: ReleaseGradientPaletteResolver.tones(
+                        brand: brand,
+                        palette: palette,
+                        context: context),
+                    colorScheme: context.colorScheme,
+                    motion: motion,
+                    reduceMotion: context.reduceMotion))
         case let .custom(background):
             background(context)
         }
@@ -260,7 +264,8 @@ private struct ReleaseAnimatedGradientBackground: View {
         let isPaused = self.reduceMotion || self.motion.clampedStrength == 0
 
         TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: isPaused)) { timeline in
-            let phase = isPaused
+            let phase =
+                isPaused
                 ? 0
                 : timeline.date.timeIntervalSinceReferenceDate / (Self.baseCycleDuration / self.motion.speedScale)
 
@@ -269,15 +274,16 @@ private struct ReleaseAnimatedGradientBackground: View {
                     phase: phase,
                     reduceMotion: self.reduceMotion,
                     motion: self.motion)
-                let tuning = ReleaseGradientVisualTuning
+                let tuning =
+                    ReleaseGradientVisualTuning
                     .animated(colorScheme: self.colorScheme)
                     .scaled(for: self.motion)
 
                 Canvas(
                     opaque: true,
                     colorMode: .extendedLinear,
-                    rendersAsynchronously: true)
-                { context, size in
+                    rendersAsynchronously: true
+                ) { context, size in
                     ReleaseAnimatedGradientRenderer.draw(
                         context: &context,
                         size: size,
@@ -297,8 +303,8 @@ private enum ReleaseAnimatedGradientRenderer {
         size: CGSize,
         tones: ReleaseGradientPalette.Tones,
         tuning: ReleaseAnimatedGradientTuning,
-        centers: [CGPoint])
-    {
+        centers: [CGPoint]
+    ) {
         let rect = CGRect(origin: .zero, size: size)
         let baseSize = max(size.width, size.height)
 
@@ -371,8 +377,8 @@ private enum ReleaseAnimatedGradientRenderer {
         color: Color,
         opacity: Double,
         center: CGPoint,
-        radius: CGFloat)
-    {
+        radius: CGFloat
+    ) {
         let centerPoint = CGPoint(x: center.x * size.width, y: center.y * size.height)
 
         context.fill(
@@ -394,8 +400,8 @@ private enum ReleaseGradientPaletteResolver {
     static func tones(
         brand: Color?,
         palette: ReleaseGradientPalette?,
-        context: ReleaseBackgroundContext) -> ReleaseGradientPalette.Tones
-    {
+        context: ReleaseBackgroundContext
+    ) -> ReleaseGradientPalette.Tones {
         let resolvedPalette = palette ?? .brand(brand ?? context.brandColor ?? .blue)
         return resolvedPalette.tones(for: context.colorScheme)
     }
@@ -486,8 +492,8 @@ enum ReleaseAnimatedGradientMotion {
     static func centers(
         phase: Double,
         reduceMotion: Bool,
-        motion: ReleaseGradientMotion = .standard) -> [CGPoint]
-    {
+        motion: ReleaseGradientMotion = .standard
+    ) -> [CGPoint] {
         let phase = reduceMotion ? 0 : phase
         let travelScale = reduceMotion ? 0 : motion.travelScale
         let baseAngle = phase * .pi * 2

@@ -30,7 +30,7 @@ struct ReleaseViewBuildTest {
                         id: "labeled",
                         image: Image(systemName: "star"),
                         label: Text("Labeled"),
-                        description: Text("With label and image.")),
+                        description: Text("With label and image."))
                 ]
             }
             var notice: ReleaseNotice? { ReleaseNotice(text: Text("Notice")) }
@@ -50,7 +50,7 @@ struct ReleaseViewBuildTest {
                         id: "localized-label",
                         systemImage: "sparkles",
                         label: "Localized label",
-                        description: "Localized description."),
+                        description: "Localized description.")
                 ]
             }
             var notice: ReleaseNotice? { nil }
@@ -74,11 +74,13 @@ struct ReleaseViewBuildTest {
                         image: Image(systemName: "star.circle.fill"),
                         label: Text("Feature \(index) with a longer localized label"),
                         description: Text(
-                            "This feature description is intentionally longer so the row has to wrap without clipping, overlapping, or pushing controls off screen."))
+                            "This feature description is intentionally longer so the row has to wrap without clipping, overlapping, or pushing controls off screen."
+                        ))
                 }
             }
             var notice: ReleaseNotice? {
-                ReleaseNotice(text: Text("This notice is also long enough to wrap over multiple lines in a narrow sheet."))
+                ReleaseNotice(
+                    text: Text("This notice is also long enough to wrap over multiple lines in a narrow sheet."))
             }
             var buttonText: Text {
                 Text("Continue with all of these new improvements")
@@ -152,10 +154,11 @@ struct ReleaseViewBuildTest {
 
     @Test
     func viewConstructsWithLinearGradientBackground() {
-        _ = self.backgroundView(.linearGradient(
-            colors: [.blue.opacity(0.18), .mint.opacity(0.12), .clear],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing))
+        _ = self.backgroundView(
+            .linearGradient(
+                colors: [.blue.opacity(0.18), .mint.opacity(0.12), .clear],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing))
     }
 
     @Test
@@ -187,15 +190,16 @@ struct ReleaseViewBuildTest {
 
     @Test
     func viewConstructsWithCustomBackground() {
-        _ = self.backgroundView(.custom { context in
-            LinearGradient(
-                colors: [
-                    Color.blue.opacity(context.reduceMotion ? 0.10 : 0.18),
-                    context.colorScheme == .dark ? .purple.opacity(0.24) : .purple.opacity(0.12),
-                ],
-                startPoint: .top,
-                endPoint: .bottom)
-        })
+        _ = self.backgroundView(
+            .custom { context in
+                LinearGradient(
+                    colors: [
+                        Color.blue.opacity(context.reduceMotion ? 0.10 : 0.18),
+                        context.colorScheme == .dark ? .purple.opacity(0.24) : .purple.opacity(0.12),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom)
+            })
     }
 
     @Test
@@ -351,7 +355,9 @@ struct ReleaseViewBuildTest {
             reduceMotion: false,
             motion: .expressive)
 
-        #expect(self.totalTravel(from: expressiveStart, to: expressiveEnd) > self.totalTravel(from: subtleStart, to: subtleEnd))
+        #expect(
+            self.totalTravel(from: expressiveStart, to: expressiveEnd)
+                > self.totalTravel(from: subtleStart, to: subtleEnd))
     }
 
     @Test
@@ -458,7 +464,7 @@ private struct StyledContent: ReleaseContent {
                 id: "styled-feature",
                 image: Image(systemName: "paintpalette.fill"),
                 label: Text("Styled feature"),
-                description: Text("This feature checks custom style construction.")),
+                description: Text("This feature checks custom style construction."))
         ]
     }
     var notice: ReleaseNotice? { ReleaseNotice(text: Text("Styled notice")) }

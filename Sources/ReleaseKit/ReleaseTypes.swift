@@ -17,8 +17,8 @@ public struct ReleaseFeature: Identifiable {
         id: String,
         systemImage: String? = nil,
         label: LocalizedStringResource? = nil,
-        description: LocalizedStringResource)
-    {
+        description: LocalizedStringResource
+    ) {
         self.id = id
         self.image = systemImage.map { Image(systemName: $0) }
         self.label = label.map { Text($0) }
@@ -34,8 +34,8 @@ public struct ReleaseFeature: Identifiable {
     public init(
         systemImage: String? = nil,
         label: LocalizedStringResource? = nil,
-        description: LocalizedStringResource)
-    {
+        description: LocalizedStringResource
+    ) {
         self.init(
             id: UUID().uuidString,
             systemImage: systemImage,

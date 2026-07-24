@@ -21,8 +21,8 @@ public struct ReleaseStyle {
         featureTitleColor: Color? = nil,
         featureDescriptionColor: Color? = nil,
         noticeColor: Color? = nil,
-        buttonForegroundColor: Color? = nil)
-    {
+        buttonForegroundColor: Color? = nil
+    ) {
         self.tint = tint
         self.titleColor = titleColor
         self.featureIconColor = featureIconColor

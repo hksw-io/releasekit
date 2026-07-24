@@ -42,33 +42,33 @@ enum Tokens {
 
     enum Platform {
         #if os(macOS)
-            static let iconSize: CGFloat = 64
-            static let featureIconSize: CGFloat = 24
-            static let buttonVerticalPadding: CGFloat = 8
-            static let contentSpacing: CGFloat = 24
-            static let featureSpacing: CGFloat = 20
-            static let topPadding: CGFloat = 32
-            static let bottomPadding: CGFloat = 20
-            static let scrollEdgeFadeHeight: CGFloat = 60
+        static let iconSize: CGFloat = 64
+        static let featureIconSize: CGFloat = 24
+        static let buttonVerticalPadding: CGFloat = 8
+        static let contentSpacing: CGFloat = 24
+        static let featureSpacing: CGFloat = 20
+        static let topPadding: CGFloat = 32
+        static let bottomPadding: CGFloat = 20
+        static let scrollEdgeFadeHeight: CGFloat = 60
         #else
-            static let iconSize: CGFloat = 100
-            static let featureIconSize: CGFloat = 35
-            static let buttonVerticalPadding: CGFloat = 14
-            static let contentSpacing: CGFloat = 38
-            static let featureSpacing: CGFloat = 32
-            static let topPadding: CGFloat = 32
-            static let bottomPadding: CGFloat = 24
-            static let scrollEdgeFadeHeight: CGFloat = 80
+        static let iconSize: CGFloat = 100
+        static let featureIconSize: CGFloat = 35
+        static let buttonVerticalPadding: CGFloat = 14
+        static let contentSpacing: CGFloat = 38
+        static let featureSpacing: CGFloat = 32
+        static let topPadding: CGFloat = 32
+        static let bottomPadding: CGFloat = 24
+        static let scrollEdgeFadeHeight: CGFloat = 80
         #endif
     }
 
     static var background: Color {
         #if os(macOS)
-            Color(nsColor: .windowBackgroundColor)
+        Color(nsColor: .windowBackgroundColor)
         #elseif os(iOS)
-            Color(.systemBackground)
+        Color(.systemBackground)
         #else
-            Color.black
+        Color.black
         #endif
     }
 }

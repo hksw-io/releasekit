@@ -21,8 +21,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @ScaledMetric(relativeTo: .body) private var topPadding: CGFloat = Tokens.Platform.topPadding
     @ScaledMetric(relativeTo: .body) private var bottomPadding: CGFloat = Tokens.Platform.bottomPadding
     @ScaledMetric(relativeTo: .body) private var scrollEdgeFadeHeight: CGFloat = Tokens.Platform.scrollEdgeFadeHeight
-    @ScaledMetric(relativeTo: .body) private var compactHorizontalPadding: CGFloat = Tokens.Layout.compactHorizontalPadding
-    @ScaledMetric(relativeTo: .body) private var regularHorizontalPadding: CGFloat = Tokens.Layout.regularHorizontalPadding
+    @ScaledMetric(relativeTo: .body) private var compactHorizontalPadding: CGFloat = Tokens.Layout
+        .compactHorizontalPadding
+    @ScaledMetric(relativeTo: .body) private var regularHorizontalPadding: CGFloat = Tokens.Layout
+        .regularHorizontalPadding
 
     public init(content: Content, onDismiss: @escaping () -> Void) {
         self.content = content
@@ -58,9 +60,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                     .padding(.top, self.topPadding)
                     .padding(
                         .bottom,
-                        self.bottomPadding + FooterMaskMetrics.contentBottomInset(
-                            containerHeight: geometry.size.height,
-                            footerFrame: self.footerFrame))
+                        self.bottomPadding
+                            + FooterMaskMetrics.contentBottomInset(
+                                containerHeight: geometry.size.height,
+                                footerFrame: self.footerFrame))
                 }
                 .scrollIndicators(.never, axes: .vertical)
                 .scrollBounceBehavior(.basedOnSize)
@@ -87,9 +90,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                             content: self.content,
                             buttonPadding: self.buttonPadding,
                             style: self.style,
-                            onDismiss: self.onDismiss)
-                            .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-                            .padding(.horizontal, self.horizontalPadding(for: geometry.size.width))
+                            onDismiss: self.onDismiss
+                        )
+                        .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+                        .padding(.horizontal, self.horizontalPadding(for: geometry.size.width))
                     }
                     .onGeometryChange(for: FooterMaskFrame.self) { geometry in
                         FooterMaskMetrics.quantizedFrame(
@@ -110,11 +114,11 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         .interactiveDismissDisabled()
         .releaseTint(self.style.tint)
         #if os(macOS)
-            .frame(minWidth: Tokens.Layout.compactSheetMinWidth, minHeight: 560)
+        .frame(minWidth: Tokens.Layout.compactSheetMinWidth, minHeight: 560)
         #endif
-            .onAppear {
-                self.featuresVisible = true
-            }
+        .onAppear {
+            self.featuresVisible = true
+        }
     }
 
     public func releaseBackground(_ background: ReleaseBackground) -> Self {
@@ -147,8 +151,8 @@ enum LayoutMetrics {
         for width: CGFloat,
         compact: CGFloat,
         regular: CGFloat,
-        breakpoint: CGFloat) -> CGFloat
-    {
+        breakpoint: CGFloat
+    ) -> CGFloat {
         width <= breakpoint ? compact : regular
     }
 }
@@ -159,8 +163,8 @@ enum ScrollEdgeFade {
     static func opacity(
         contentHeight: CGFloat,
         visibleMaxY: CGFloat,
-        fadeHeight: CGFloat) -> Double
-    {
+        fadeHeight: CGFloat
+    ) -> Double {
         guard contentHeight > 0, fadeHeight > 0 else {
             return 1
         }
@@ -210,8 +214,8 @@ enum FooterMaskMetrics {
         containerHeight: CGFloat,
         footerFrame: FooterMaskFrame,
         fadeHeight: CGFloat,
-        scrollEdgeFadeOpacity: Double) -> FooterMaskLayout
-    {
+        scrollEdgeFadeOpacity: Double
+    ) -> FooterMaskLayout {
         guard containerHeight > 0, footerFrame.isMeasured else {
             return FooterMaskLayout(
                 opaqueHeight: max(0, containerHeight),
@@ -290,8 +294,9 @@ private struct FooterContentMask: View {
                         .black.opacity(layout.fadeBottomOpacity),
                     ],
                     startPoint: .top,
-                    endPoint: .bottom)
-                    .frame(height: layout.fadeHeight)
+                    endPoint: .bottom
+                )
+                .frame(height: layout.fadeHeight)
             }
 
             Rectangle()
@@ -309,10 +314,12 @@ private struct ReleaseBackgroundView: View {
 
     var body: some View {
         self.background
-            .makeView(context: ReleaseBackgroundContext(
-                reduceMotion: self.reduceMotion,
-                brandColor: self.brandColor,
-                colorScheme: self.colorScheme))
+            .makeView(
+                context: ReleaseBackgroundContext(
+                    reduceMotion: self.reduceMotion,
+                    brandColor: self.brandColor,
+                    colorScheme: self.colorScheme)
+            )
             .ignoresSafeArea()
     }
 }
@@ -336,11 +343,11 @@ private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
             }
 
             self.content.title
-            #if os(macOS)
-                .font(.title)
-            #else
-                .font(.largeTitle)
-            #endif
+                #if os(macOS)
+            .font(.title)
+                #else
+            .font(.largeTitle)
+                #endif
                 .fontWeight(.bold)
                 .releaseOptionalForegroundStyle(self.style.titleColor)
                 .multilineTextAlignment(.center)
@@ -524,7 +531,9 @@ private struct LongReleasePreviewContent: ReleaseContent {
                 id: "long-feature-\(index)",
                 systemImage: "checkmark.seal.fill",
                 label: "Feature \(index) with a longer localized label",
-                description: "This feature description is intentionally longer so the row wraps cleanly without clipping, overlapping, or hiding the footer action.")
+                description:
+                    "This feature description is intentionally longer so the row wraps cleanly without clipping, overlapping, or hiding the footer action."
+            )
         }
     }
     var notice: ReleaseNotice? {

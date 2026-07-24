@@ -36,6 +36,12 @@ Instructions for agents working in this repository. RFC 2119 keywords apply.
 - Run `swift test` before calling work complete. If the change is UI-heavy, also exercise Xcode previews or an equivalent local host app.
 - Run `git diff --check` before finalizing.
 
+## Formatting
+
+- `swift-format` owns source formatting. The checked-in `.swift-format` is the single source of truth; do not hand-format against a remembered house style.
+- Run `swift format --in-place --recursive Sources Tests` before committing, and `swift format lint --strict --recursive Sources Tests` to verify.
+- `AllPublicDeclarationsHaveDocumentation` is enabled, so every public declaration MUST carry a `///` comment. CI fails otherwise.
+
 ## Documentation and Dependencies
 
 - Use Sosumi for current Apple documentation when SwiftUI, platform APIs, or Human Interface Guidelines details matter.

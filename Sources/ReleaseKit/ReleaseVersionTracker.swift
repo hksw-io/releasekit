@@ -9,8 +9,8 @@ public struct ReleaseVersionTracker {
     public init(
         userDefaults: UserDefaults = .standard,
         keyPrefix: String,
-        currentVersion: String)
-    {
+        currentVersion: String
+    ) {
         self.userDefaults = userDefaults
         self.currentVersion = currentVersion
         self.lastShownVersionKey = "\(keyPrefix).release.lastShownVersion"
