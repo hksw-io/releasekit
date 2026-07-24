@@ -17,10 +17,10 @@ import SwiftUI
 ///     }
 /// ```
 ///
-/// Content scrolls behind the pinned footer, which fades overflowing rows only above itself;
-/// reaching the end of the list restores full opacity. Feature rows animate in with a staggered
-/// reveal that is suppressed under Reduce Motion. Layout adapts to compact and regular widths, to
-/// Dynamic Type, and to resizable macOS windows.
+/// The footer is a bottom safe-area bar, so content scrolls beneath it and the system's scroll edge
+/// effect keeps overflowing rows legible where they meet it. Feature rows animate in with a
+/// staggered reveal that is suppressed under Reduce Motion. Layout adapts to compact and regular
+/// widths, to Dynamic Type, and to resizable macOS windows.
 ///
 /// Use ``releaseBackground(_:)`` for the surface and ``releaseStyle(_:)`` for foreground colors.
 /// Pair with ``ReleaseVersionTracker`` to decide when to present.
@@ -33,8 +33,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
     @State private var featuresVisible = false
-    @State private var scrollEdgeFadeOpacity: Double = 1
-    @State private var footerFrame: FooterMaskFrame = .zero
+    @State private var containerWidth: CGFloat = 0
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = Tokens.Platform.iconSize
     @ScaledMetric(relativeTo: .body) private var featureIconSize: CGFloat = Tokens.Platform.featureIconSize
@@ -43,7 +42,6 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @ScaledMetric(relativeTo: .body) private var featureSpacing: CGFloat = Tokens.Platform.featureSpacing
     @ScaledMetric(relativeTo: .body) private var topPadding: CGFloat = Tokens.Platform.topPadding
     @ScaledMetric(relativeTo: .body) private var bottomPadding: CGFloat = Tokens.Platform.bottomPadding
-    @ScaledMetric(relativeTo: .body) private var scrollEdgeFadeHeight: CGFloat = Tokens.Platform.scrollEdgeFadeHeight
     @ScaledMetric(relativeTo: .body) private var compactHorizontalPadding: CGFloat = Tokens.Layout
         .compactHorizontalPadding
     @ScaledMetric(relativeTo: .body) private var regularHorizontalPadding: CGFloat = Tokens.Layout
@@ -60,84 +58,56 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         self.onDismiss = onDismiss
     }
 
-    /// The composed sheet: background, scrolling content, and the pinned footer overlay.
+    /// The composed sheet: background, scrolling content, and the pinned footer.
     public var body: some View {
-        ZStack {
+        ScrollView(.vertical) {
+            VStack(spacing: self.contentSpacing) {
+                ReleaseHeaderSection(
+                    content: self.content,
+                    iconSize: self.iconSize,
+                    style: self.style)
+                ReleaseFeatureList(
+                    features: self.content.features,
+                    featureSpacing: self.featureSpacing,
+                    featureIconSize: self.featureIconSize,
+                    featuresVisible: self.featuresVisible,
+                    reduceMotion: self.reduceMotion,
+                    style: self.style)
+            }
+            .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, self.horizontalPadding)
+            .padding(.top, self.topPadding)
+            .padding(.bottom, self.bottomPadding)
+        }
+        .scrollIndicators(.never, axes: .vertical)
+        .scrollBounceBehavior(.basedOnSize)
+        .scrollEdgeEffectStyle(.hard, for: .bottom)
+        .background {
             ReleaseBackgroundView(
                 background: self.background,
                 reduceMotion: self.reduceMotion,
                 brandColor: self.style.tint,
                 colorScheme: self.colorScheme)
-
-            GeometryReader { geometry in
-                ScrollView(.vertical) {
-                    VStack(spacing: self.contentSpacing) {
-                        ReleaseHeaderSection(
-                            content: self.content,
-                            iconSize: self.iconSize,
-                            style: self.style)
-                        ReleaseFeatureList(
-                            features: self.content.features,
-                            featureSpacing: self.featureSpacing,
-                            featureIconSize: self.featureIconSize,
-                            featuresVisible: self.featuresVisible,
-                            reduceMotion: self.reduceMotion,
-                            style: self.style)
-                    }
-                    .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, self.horizontalPadding(for: geometry.size.width))
-                    .padding(.top, self.topPadding)
-                    .padding(
-                        .bottom,
-                        self.bottomPadding
-                            + FooterMaskMetrics.contentBottomInset(
-                                containerHeight: geometry.size.height,
-                                footerFrame: self.footerFrame))
-                }
-                .scrollIndicators(.never, axes: .vertical)
-                .scrollBounceBehavior(.basedOnSize)
-                .onScrollGeometryChange(for: Double.self) { geometry in
-                    ScrollEdgeFade.opacity(
-                        contentHeight: geometry.contentSize.height,
-                        visibleMaxY: geometry.visibleRect.maxY,
-                        fadeHeight: self.resolvedScrollEdgeFadeHeight)
-                } action: { _, newOpacity in
-                    if self.scrollEdgeFadeOpacity != newOpacity {
-                        self.scrollEdgeFadeOpacity = newOpacity
-                    }
-                }
-                .mask {
-                    FooterContentMask(
-                        containerHeight: geometry.size.height,
-                        footerFrame: self.footerFrame,
-                        fadeHeight: self.resolvedScrollEdgeFadeHeight,
-                        scrollEdgeFadeOpacity: self.scrollEdgeFadeOpacity)
-                }
-                .overlay(alignment: .bottom) {
-                    ReleaseFooterSection(
-                        content: self.content,
-                        buttonPadding: self.buttonPadding,
-                        style: self.style,
-                        onDismiss: self.onDismiss
-                    )
-                    .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-                    .padding(.horizontal, self.horizontalPadding(for: geometry.size.width))
-                    .onGeometryChange(for: FooterMaskFrame.self) { geometry in
-                        FooterMaskMetrics.quantizedFrame(
-                            geometry.frame(in: .named(FooterMaskMetrics.coordinateSpaceName)))
-                    } action: { newFrame in
-                        if self.footerFrame != newFrame {
-                            self.footerFrame = newFrame
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .coordinateSpace(.named(FooterMaskMetrics.coordinateSpaceName))
+        }
+        .safeAreaBar(edge: .bottom) {
+            ReleaseFooterSection(
+                content: self.content,
+                buttonPadding: self.buttonPadding,
+                style: self.style,
+                onDismiss: self.onDismiss
+            )
+            .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, self.horizontalPadding)
+        }
+        .onGeometryChange(for: CGFloat.self) { geometry in
+            geometry.size.width
+        } action: { newWidth in
+            if self.containerWidth != newWidth {
+                self.containerWidth = newWidth
             }
         }
-        .clipped()
         .interactiveDismissDisabled()
         .releaseTint(self.style.tint)
         #if os(macOS)
@@ -171,16 +141,12 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         return view
     }
 
-    private func horizontalPadding(for width: CGFloat) -> CGFloat {
+    private var horizontalPadding: CGFloat {
         LayoutMetrics.horizontalPadding(
-            for: width,
+            for: self.containerWidth,
             compact: self.compactHorizontalPadding,
             regular: self.regularHorizontalPadding,
             breakpoint: Tokens.Layout.compactWidthBreakpoint)
-    }
-
-    private var resolvedScrollEdgeFadeHeight: CGFloat {
-        FooterMaskMetrics.resolvedFadeHeight(self.scrollEdgeFadeHeight)
     }
 }
 
@@ -192,155 +158,6 @@ enum LayoutMetrics {
         breakpoint: CGFloat
     ) -> CGFloat {
         width <= breakpoint ? compact : regular
-    }
-}
-
-enum ScrollEdgeFade {
-    static let opacityStep = 0.05
-
-    static func opacity(
-        contentHeight: CGFloat,
-        visibleMaxY: CGFloat,
-        fadeHeight: CGFloat
-    ) -> Double {
-        guard contentHeight > 0, fadeHeight > 0 else {
-            return 1
-        }
-
-        let distance = contentHeight - visibleMaxY
-        let rawOpacity = Double(min(1, max(0, distance / fadeHeight)))
-        return self.quantize(rawOpacity)
-    }
-
-    static func quantize(_ opacity: Double, step: Double = Self.opacityStep) -> Double {
-        guard step > 0 else {
-            return opacity
-        }
-
-        return (opacity / step).rounded() * step
-    }
-}
-
-enum FooterMaskMetrics {
-    static let coordinateSpaceName = "ReleaseFooterMask"
-    static let heightStep: CGFloat = 1
-    static let maximumFadeHeight: CGFloat = 28
-
-    static func quantizedFrame(_ frame: CGRect, step: CGFloat = Self.heightStep) -> FooterMaskFrame {
-        FooterMaskFrame(
-            minY: self.quantizedHeight(frame.minY, step: step),
-            height: self.quantizedHeight(frame.height, step: step))
-    }
-
-    static func quantizedHeight(_ height: CGFloat, step: CGFloat = Self.heightStep) -> CGFloat {
-        guard height > 0, step > 0 else {
-            return 0
-        }
-
-        return (height / step).rounded() * step
-    }
-
-    static func resolvedFadeHeight(_ fadeHeight: CGFloat, maximum: CGFloat = Self.maximumFadeHeight) -> CGFloat {
-        guard fadeHeight > 0, maximum > 0 else {
-            return 0
-        }
-
-        return min(fadeHeight, maximum)
-    }
-
-    static func layout(
-        containerHeight: CGFloat,
-        footerFrame: FooterMaskFrame,
-        fadeHeight: CGFloat,
-        scrollEdgeFadeOpacity: Double
-    ) -> FooterMaskLayout {
-        guard containerHeight > 0, footerFrame.isMeasured else {
-            return FooterMaskLayout(
-                opaqueHeight: max(0, containerHeight),
-                fadeHeight: 0,
-                clearHeight: 0,
-                fadeBottomOpacity: 1)
-        }
-
-        let footerMinY = min(max(0, footerFrame.minY), containerHeight)
-        let resolvedFadeHeight = min(max(0, fadeHeight), footerMinY)
-        let clearHeight = self.contentBottomInset(
-            containerHeight: containerHeight,
-            footerFrame: footerFrame)
-
-        return FooterMaskLayout(
-            opaqueHeight: max(0, footerMinY - resolvedFadeHeight),
-            fadeHeight: resolvedFadeHeight,
-            clearHeight: clearHeight,
-            fadeBottomOpacity: self.fadeBottomOpacity(scrollEdgeFadeOpacity: scrollEdgeFadeOpacity))
-    }
-
-    static func contentBottomInset(containerHeight: CGFloat, footerFrame: FooterMaskFrame) -> CGFloat {
-        guard containerHeight > 0, footerFrame.isMeasured else {
-            return 0
-        }
-
-        let footerMinY = min(max(0, footerFrame.minY), containerHeight)
-        return max(0, containerHeight - footerMinY)
-    }
-
-    static func fadeBottomOpacity(scrollEdgeFadeOpacity: Double) -> Double {
-        1 - min(1, max(0, scrollEdgeFadeOpacity))
-    }
-}
-
-struct FooterMaskFrame: Equatable {
-    static let zero = Self(minY: 0, height: 0)
-
-    let minY: CGFloat
-    let height: CGFloat
-
-    var isMeasured: Bool {
-        self.height > 0
-    }
-}
-
-struct FooterMaskLayout: Equatable {
-    let opaqueHeight: CGFloat
-    let fadeHeight: CGFloat
-    let clearHeight: CGFloat
-    let fadeBottomOpacity: Double
-}
-
-private struct FooterContentMask: View {
-    let containerHeight: CGFloat
-    let footerFrame: FooterMaskFrame
-    let fadeHeight: CGFloat
-    let scrollEdgeFadeOpacity: Double
-
-    var body: some View {
-        let layout = FooterMaskMetrics.layout(
-            containerHeight: self.containerHeight,
-            footerFrame: self.footerFrame,
-            fadeHeight: self.fadeHeight,
-            scrollEdgeFadeOpacity: self.scrollEdgeFadeOpacity)
-
-        VStack(spacing: 0) {
-            Rectangle()
-                .fill(.black)
-                .frame(height: layout.opaqueHeight)
-
-            if layout.fadeHeight > 0 {
-                LinearGradient(
-                    colors: [
-                        .black,
-                        .black.opacity(layout.fadeBottomOpacity),
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: layout.fadeHeight)
-            }
-
-            Rectangle()
-                .fill(.clear)
-                .frame(height: layout.clearHeight)
-        }
     }
 }
 

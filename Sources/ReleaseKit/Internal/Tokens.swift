@@ -49,7 +49,6 @@ enum Tokens {
         static let featureSpacing: CGFloat = 20
         static let topPadding: CGFloat = 32
         static let bottomPadding: CGFloat = 20
-        static let scrollEdgeFadeHeight: CGFloat = 60
         #else
         static let iconSize: CGFloat = 100
         static let featureIconSize: CGFloat = 35
@@ -58,7 +57,6 @@ enum Tokens {
         static let featureSpacing: CGFloat = 32
         static let topPadding: CGFloat = 32
         static let bottomPadding: CGFloat = 24
-        static let scrollEdgeFadeHeight: CGFloat = 80
         #endif
     }
 

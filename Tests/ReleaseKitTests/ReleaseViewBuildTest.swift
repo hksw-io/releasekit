@@ -217,87 +217,6 @@ struct ReleaseViewBuildTest {
     }
 
     @Test
-    func footerMaskHeightQuantizesToWholePoints() {
-        #expect(FooterMaskMetrics.quantizedHeight(123.4) == 123)
-        #expect(FooterMaskMetrics.quantizedHeight(123.5) == 124)
-    }
-
-    @Test
-    func footerMaskFrameQuantizesPositionAndHeight() {
-        let frame = FooterMaskMetrics.quantizedFrame(CGRect(x: 0, y: 612.4, width: 390, height: 127.5))
-
-        #expect(frame.minY == 612)
-        #expect(frame.height == 128)
-    }
-
-    @Test
-    func footerMaskFadeHeightCapsToAvoidEarlyMasking() {
-        #expect(FooterMaskMetrics.resolvedFadeHeight(80) == FooterMaskMetrics.maximumFadeHeight)
-    }
-
-    @Test
-    func footerMaskFadeHeightKeepsShorterValues() {
-        #expect(FooterMaskMetrics.resolvedFadeHeight(18) == 18)
-        #expect(FooterMaskMetrics.resolvedFadeHeight(0) == 0)
-    }
-
-    @Test
-    func footerMaskFadeBottomIsHiddenWhenScrollableContentContinues() {
-        #expect(FooterMaskMetrics.fadeBottomOpacity(scrollEdgeFadeOpacity: 1) == 0)
-    }
-
-    @Test
-    func footerMaskFadeBottomIsVisibleAtScrollEnd() {
-        #expect(FooterMaskMetrics.fadeBottomOpacity(scrollEdgeFadeOpacity: 0) == 1)
-    }
-
-    @Test
-    func footerMaskLayoutUsesMeasuredFooterTop() {
-        let layout = FooterMaskMetrics.layout(
-            containerHeight: 740,
-            footerFrame: FooterMaskFrame(minY: 612, height: 128),
-            fadeHeight: FooterMaskMetrics.resolvedFadeHeight(80),
-            scrollEdgeFadeOpacity: 1)
-
-        #expect(layout.opaqueHeight == 584)
-        #expect(layout.fadeHeight == 28)
-        #expect(layout.clearHeight == 128)
-        #expect(layout.fadeBottomOpacity == 0)
-    }
-
-    @Test
-    func footerMaskLayoutStaysOpaqueBeforeFooterMeasurement() {
-        let layout = FooterMaskMetrics.layout(
-            containerHeight: 740,
-            footerFrame: .zero,
-            fadeHeight: FooterMaskMetrics.resolvedFadeHeight(80),
-            scrollEdgeFadeOpacity: 1)
-
-        #expect(layout.opaqueHeight == 740)
-        #expect(layout.fadeHeight == 0)
-        #expect(layout.clearHeight == 0)
-        #expect(layout.fadeBottomOpacity == 1)
-    }
-
-    @Test
-    func footerMaskContentBottomInsetMatchesMeasuredFooterArea() {
-        let inset = FooterMaskMetrics.contentBottomInset(
-            containerHeight: 740,
-            footerFrame: FooterMaskFrame(minY: 612, height: 128))
-
-        #expect(inset == 128)
-    }
-
-    @Test
-    func footerMaskContentBottomInsetIsZeroBeforeFooterMeasurement() {
-        let inset = FooterMaskMetrics.contentBottomInset(
-            containerHeight: 740,
-            footerFrame: .zero)
-
-        #expect(inset == 0)
-    }
-
-    @Test
     func primaryButtonKeepsSharedMinimumLabelHeight() {
         #expect(Tokens.Layout.buttonLabelMinHeight == 28)
     }
@@ -394,36 +313,6 @@ struct ReleaseViewBuildTest {
         let actualDelay = Tokens.Motion.revealDelay(for: 100)
 
         #expect(abs(actualDelay - expectedDelay) < 0.0001)
-    }
-
-    @Test
-    func scrollEdgeFadeQuantizesOpacity() {
-        let opacity = ScrollEdgeFade.opacity(
-            contentHeight: 1_000,
-            visibleMaxY: 955,
-            fadeHeight: 100)
-
-        #expect(opacity == 0.45)
-    }
-
-    @Test
-    func scrollEdgeFadeIsOpaqueAtScrollEnd() {
-        let opacity = ScrollEdgeFade.opacity(
-            contentHeight: 1_000,
-            visibleMaxY: 1_000,
-            fadeHeight: 100)
-
-        #expect(opacity == 0)
-    }
-
-    @Test
-    func scrollEdgeFadeIsOpaqueWhenVisibleRectExtendsPastContentEnd() {
-        let opacity = ScrollEdgeFade.opacity(
-            contentHeight: 1_000,
-            visibleMaxY: 1_128,
-            fadeHeight: 100)
-
-        #expect(opacity == 0)
     }
 
     @Test
