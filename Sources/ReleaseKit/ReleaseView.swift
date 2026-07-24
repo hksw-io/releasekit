@@ -73,6 +73,8 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                     reduceMotion: self.reduceMotion,
                     style: self.style)
             }
+            // Mac users expect to be able to select and copy release copy out of a window.
+            .textSelection(.enabled)
             .frame(maxWidth: Tokens.Layout.contentMaxWidth)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, self.horizontalPadding)
