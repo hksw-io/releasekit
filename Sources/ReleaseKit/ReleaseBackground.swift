@@ -137,22 +137,6 @@ public struct ReleaseBackground {
         Self(storage: .animatedGradient(brand: brand, palette: palette, motion: motion))
     }
 
-    @available(*, deprecated, message: "Use animatedGradient(brand:palette:motion:) instead.")
-    public static func animatedMesh(
-        primary: Color = .blue,
-        secondary: Color = .purple,
-        accent: Color = .mint
-    ) -> Self {
-        self.animatedGradient(
-            palette: ReleaseGradientPalette(
-                light: .init(
-                    base: Tokens.background,
-                    primary: primary,
-                    secondary: secondary,
-                    accent: accent)),
-            motion: .standard)
-    }
-
     public static func custom<Background: View>(
         @ViewBuilder _ background: @escaping (ReleaseBackgroundContext) -> Background
     ) -> Self {

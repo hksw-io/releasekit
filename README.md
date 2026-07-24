@@ -128,8 +128,6 @@ ReleaseView(content: MyRelease()) {
 
 The built-in presets are `.subtle`, `.standard`, and `.expressive`. Stronger motion increases movement, speed, and gradient contrast. For finer control, pass `ReleaseGradientMotion(strength:)`; values are clamped from `0` to `2`, and `0` keeps the animated-gradient color field static.
 
-`.animatedMesh(primary:secondary:accent:)` remains available as a deprecated compatibility alias for `.animatedGradient(palette:motion:)`.
-
 ReleaseKit keeps the footer pinned while content scrolls behind it. A measured footer mask fades overflowing content only above the footer; when scrolling reaches the end, visible content is fully opaque again.
 
 ## Styling
@@ -153,9 +151,9 @@ ReleaseView(content: MyRelease()) {
 
 ## Version tracking
 
-Give every `ReleaseFeature` a stable `id`. Stable IDs let SwiftUI preserve row identity when features are inserted, removed, or reordered.
+Every `ReleaseFeature` requires a stable `id`. Stable IDs let SwiftUI preserve row identity when features are inserted, removed, or reordered. Because conformers usually expose `features` as a computed property, an ID derived per evaluation — a fresh `UUID()`, say — would re-create every row on each pass and replay the entrance animation.
 
-`ReleaseFeature` has `Text` and `LocalizedStringResource` initializers. Prefer the initializer with an explicit `id`; the old ID-less initializers remain only for compatibility and are deprecated.
+`ReleaseFeature` has both a `Text` and a `LocalizedStringResource` initializer.
 
 `ReleaseVersionTracker` persists the last-shown version in `UserDefaults` and decides whether to present the sheet on launch:
 
