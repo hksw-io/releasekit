@@ -2,14 +2,11 @@ import SwiftUI
 
 enum Tokens {
     enum Spacing {
-        static let small: CGFloat = 8
         static let medium: CGFloat = 12
         static let large: CGFloat = 16
-        static let xLarge: CGFloat = 24
     }
 
     enum Radius {
-        static let large: CGFloat = 16
         static let button: CGFloat = 24
         static let iconScale: CGFloat = 0.22
     }
@@ -20,9 +17,11 @@ enum Tokens {
         static let regularHorizontalPadding: CGFloat = 24
         static let compactWidthBreakpoint: CGFloat = 390
         static let compactSheetMinWidth: CGFloat = 320
+        static let compactSheetMinHeight: CGFloat = 560
         static let footerControlSpacing: CGFloat = Spacing.medium
         static let footerTopPadding: CGFloat = 20
         static let footerBottomPadding: CGFloat = Spacing.medium
+        /// Human Interface Guidelines minimum hit target. Enforced as a floor on the footer button.
         static let minimumControlHeight: CGFloat = 44
         static let buttonLabelMinHeight: CGFloat = 28
     }

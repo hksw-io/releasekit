@@ -40,7 +40,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                 colorScheme: self.colorScheme)
 
             GeometryReader { geometry in
-                ScrollView(.vertical, showsIndicators: false) {
+                ScrollView(.vertical) {
                     VStack(spacing: self.contentSpacing) {
                         ReleaseHeaderSection(
                             content: self.content,
@@ -85,16 +85,14 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                         scrollEdgeFadeOpacity: self.scrollEdgeFadeOpacity)
                 }
                 .overlay(alignment: .bottom) {
-                    ZStack {
-                        ReleaseFooterSection(
-                            content: self.content,
-                            buttonPadding: self.buttonPadding,
-                            style: self.style,
-                            onDismiss: self.onDismiss
-                        )
-                        .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-                        .padding(.horizontal, self.horizontalPadding(for: geometry.size.width))
-                    }
+                    ReleaseFooterSection(
+                        content: self.content,
+                        buttonPadding: self.buttonPadding,
+                        style: self.style,
+                        onDismiss: self.onDismiss
+                    )
+                    .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+                    .padding(.horizontal, self.horizontalPadding(for: geometry.size.width))
                     .onGeometryChange(for: FooterMaskFrame.self) { geometry in
                         FooterMaskMetrics.quantizedFrame(
                             geometry.frame(in: .named(FooterMaskMetrics.coordinateSpaceName)))
@@ -110,11 +108,12 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             }
         }
         .clipped()
-        .scrollIndicators(.never, axes: .vertical)
         .interactiveDismissDisabled()
         .releaseTint(self.style.tint)
         #if os(macOS)
-        .frame(minWidth: Tokens.Layout.compactSheetMinWidth, minHeight: 560)
+        .frame(
+            minWidth: Tokens.Layout.compactSheetMinWidth,
+            minHeight: Tokens.Layout.compactSheetMinHeight)
         #endif
         .onAppear {
             self.featuresVisible = true
@@ -457,10 +456,10 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
                     .foregroundStyle(self.style.buttonForegroundStyle)
                     .frame(maxWidth: .infinity, minHeight: Tokens.Layout.buttonLabelMinHeight)
                     .padding(.vertical, self.buttonPadding)
+                    .frame(minHeight: Tokens.Layout.minimumControlHeight)
                     .contentShape(RoundedRectangle(cornerRadius: Tokens.Radius.button, style: .continuous))
             }
             .buttonStyle(.plain)
-            .controlSize(.extraLarge)
             .background {
                 RoundedRectangle(cornerRadius: Tokens.Radius.button, style: .continuous)
                     .fill(self.style.buttonBackgroundStyle)

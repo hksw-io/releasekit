@@ -298,13 +298,19 @@ struct ReleaseViewBuildTest {
     }
 
     @Test
-    func primaryButtonRadiusUsesRounderControlShape() {
-        #expect(Tokens.Radius.button > Tokens.Radius.large)
-    }
-
-    @Test
     func primaryButtonKeepsSharedMinimumLabelHeight() {
         #expect(Tokens.Layout.buttonLabelMinHeight == 28)
+    }
+
+    /// The footer button's intrinsic height is the label floor plus vertical padding on both
+    /// edges. On macOS that lands on exactly 44, so the HIG minimum is met by arithmetic rather
+    /// than by intent — this guards the invariant if either token is retuned.
+    @Test
+    func primaryButtonMeetsMinimumControlHeight() {
+        let intrinsicHeight =
+            Tokens.Layout.buttonLabelMinHeight + (Tokens.Platform.buttonVerticalPadding * 2)
+
+        #expect(intrinsicHeight >= Tokens.Layout.minimumControlHeight)
     }
 
     @Test
