@@ -1,5 +1,7 @@
 # ReleaseKit
 
+[![CI](https://github.com/hksw-io/ReleaseKit/actions/workflows/ci.yml/badge.svg)](https://github.com/hksw-io/ReleaseKit/actions/workflows/ci.yml)
+
 A reusable SwiftUI "What's New" sheet for iOS and macOS apps in the HK Softworks portfolio.
 
 The package and import name is `ReleaseKit`. Public view and content APIs intentionally use the
