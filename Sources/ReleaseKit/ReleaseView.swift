@@ -114,7 +114,11 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                 .frame(maxWidth: .infinity)
             }
             // After the bar, not before: the effect applies to the edge the bar creates.
-            .scrollEdgeEffectStyle(.hard, for: .bottom)
+            //
+            // Soft, not hard: the hard style draws a divider across the sheet where content meets
+            // the bar, which reads as a seam on a surface that is meant to be continuous. Soft
+            // fades the rows out instead, and the background carries straight through.
+            .scrollEdgeEffectStyle(.soft, for: .bottom)
             .onGeometryChange(for: CGFloat.self) { geometry in
                 geometry.size.width
             } action: { newWidth in

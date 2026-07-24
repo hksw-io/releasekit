@@ -18,8 +18,8 @@ enum Tokens {
         static let compactWidthBreakpoint: CGFloat = 390
         static let footerControlSpacing: CGFloat = Spacing.medium
         static let footerTopPadding: CGFloat = 20
-        /// The bar already sits against the sheet edge; padding here only lifts the button off it.
-        static let footerBottomPadding: CGFloat = 0
+        /// The button needs to sit off the sheet edge, not against it.
+        static let footerBottomPadding: CGFloat = Spacing.large
     }
 
     enum Motion {

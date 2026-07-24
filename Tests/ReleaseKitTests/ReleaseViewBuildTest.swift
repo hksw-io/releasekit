@@ -214,12 +214,12 @@ struct ReleaseViewBuildTest {
         #expect(darkContext.colorScheme == .dark)
     }
 
-    /// The footer is a safe area bar, which already sits against the sheet edge. Padding below the
-    /// button only lifts it off that edge and leaves a dead strip under the bar.
+    /// The button must clear the sheet edge rather than hug it, without floating so high that the
+    /// bar looks detached from the bottom of the sheet.
     @Test
-    func footerSitsAgainstTheSheetEdge() {
-        #expect(Tokens.Layout.footerBottomPadding == 0)
-        #expect(Tokens.Layout.footerTopPadding > 0)
+    func footerBottomPaddingClearsSheetEdgeWithoutFloatingHigh() {
+        #expect(Tokens.Layout.footerBottomPadding > 0)
+        #expect(Tokens.Layout.footerBottomPadding <= Tokens.Layout.footerTopPadding)
     }
 
     @Test
