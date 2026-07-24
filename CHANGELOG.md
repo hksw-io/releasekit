@@ -4,7 +4,7 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2026-07-25
 
 Platform idioms and API currency for iOS 26 / macOS 26. The package had platform-aware *measurements* but a single iOS interaction model; this pass splits the parts a Mac user actually touches.
 
@@ -18,9 +18,9 @@ Platform idioms and API currency for iOS 26 / macOS 26. The package had platform
 
 - **Breaking:** `ReleaseStyle.buttonForegroundColor` defaults to the system's prominent-button label color instead of white. Set it explicitly to keep a specific color.
 - The footer button is a `.glassProminent` capsule spanning the footer on both platforms, via `buttonSizing(.flexible)`. Press, hover, focus, and contrast behavior now come from the platform rather than from a hand-drawn `.plain` button that had no press state on iOS and no hover state on macOS.
-- The pinned footer is a `safeAreaBar` with the system scroll edge effect, replacing a root `GeometryReader`, an overlay, a measured footer frame, and a hand-built gradient mask — about 145 lines.
+- The pinned footer is a `safeAreaBar` with the system's soft scroll edge effect, replacing a root `GeometryReader`, an overlay, a measured footer frame, and a hand-built gradient mask — about 145 lines. The background stays a sibling behind the scroll view; moving it onto the scroll view leaves the edge effect nothing to composite against, which shows as a seam and a ghost of the rows behind the bar.
 - macOS shows its normal overlay scroller. Hiding it applied an iPhone assumption to a pointer; it is how a Mac signals that a list continues, and it already hides itself when idle.
-- Feature reveal motion is tuned per platform: macOS takes roughly half the travel and half the total run. The curve is now a spring rather than `easeOut`. Reduce Motion still suppresses the reveal entirely.
+- The feature reveal no longer shakes as it lands. It used `animation(_:value:)`, which fires on a value change but animates *every* animatable difference in the subtree at that moment — so a `ScaledMetric` resolving or a description rewrapping on the same frame was swept into the reveal and replayed with the row's delay. The scoped `animation(_:body:)` form animates only the opacity and offset. Timing is tuned per platform, and Reduce Motion still suppresses the reveal entirely.
 - The app icon is clipped with continuous curvature, matching the squircle an app icon actually is.
 
 ### Removed
@@ -54,4 +54,5 @@ First tagged release. Everything before this was consumed off the `master` branc
 
 - Replaced the deprecated `ScrollView(_:showsIndicators:)` initializer, and removed a duplicate `scrollIndicators` modifier, an inert `controlSize` under `buttonStyle(.plain)`, and a redundant single-child `ZStack` in the footer overlay.
 
+[2.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.0
 [1.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/1.0.0
