@@ -20,23 +20,15 @@ domain language `Release...`, for example `ReleaseView`, `ReleaseContent`, and
 
 ## Installation
 
-No release tags are published yet, so use the `master` branch for now:
-
-```swift
-.package(url: "https://github.com/hksw-io/ReleaseKit.git", branch: "master")
-```
-
-Switch to a semantic version requirement after the first release tag exists:
-
 ```swift
 .package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "1.0.0")
 ```
 
-Or in Xcode: **File > Add Package Dependencies**, enter the URL above, and select the `master` branch until a release tag is available.
+Or in Xcode: **File > Add Package Dependencies** and enter the URL above.
 
 ## Usage
 
-Implement `ReleaseContent` with your app's strings and icon, then present the view:
+Implement `ReleaseContent` with your app's strings and icon, then present the view. Only `title`, `features`, and `buttonText` are required — `appIcon` and `notice` default to `nil`:
 
 ```swift
 import SwiftUI
@@ -55,7 +47,7 @@ struct MyRelease: ReleaseContent {
         ]
     }
     var notice: ReleaseNotice? {
-        ReleaseNotice(text: Text("Plus many other improvements."))
+        ReleaseNotice("Plus many other improvements.")
     }
     var buttonText: Text { Text("Continue") }
 }
@@ -149,11 +141,15 @@ ReleaseView(content: MyRelease()) {
 
 `ReleaseBackground` controls the surface behind the sheet content. `ReleaseStyle` controls foreground roles such as title, feature rows, notice text, and button text. Any color you leave as `nil` uses the standard system treatment. `tint` controls the prominent button accent and is also used by feature icons unless `featureIconColor` is set.
 
-## Version tracking
+## Features and localization
 
 Every `ReleaseFeature` requires a stable `id`. Stable IDs let SwiftUI preserve row identity when features are inserted, removed, or reordered. Because conformers usually expose `features` as a computed property, an ID derived per evaluation — a fresh `UUID()`, say — would re-create every row on each pass and replay the entrance animation.
 
-`ReleaseFeature` has both a `Text` and a `LocalizedStringResource` initializer.
+`ReleaseFeature` and `ReleaseNotice` each have a `Text` initializer and a `LocalizedStringResource` one. Localized values resolve against your app's bundle, so ReleaseKit ships no strings of its own and never localizes on your behalf. That is also why `buttonText` has no default.
+
+The content types are `Equatable` and `Sendable`, and `ReleaseContent` refines `Sendable`.
+
+## Version tracking
 
 `ReleaseVersionTracker` persists the last-shown version in `UserDefaults` and decides whether to present the sheet on launch:
 
@@ -170,7 +166,11 @@ if tracker.shouldShowRelease() {
 tracker.markAsShown()
 ```
 
-The first launch after install is treated as "not new" — users see the sheet only on subsequent version upgrades.
+The first launch after install is treated as "not new" — users see the sheet only on subsequent version upgrades. `shouldShowRelease()` is not a pure query: on that first launch it writes both tracking keys before returning `false`. Every later call only reads.
+
+Versions are compared for equality, not order, so `currentVersion` can be any string your app treats as its release identity. A rollback to an older version also shows the sheet.
+
+`keyPrefix` namespaces the two keys the tracker writes, so trackers with different prefixes never observe each other's state.
 
 ## Local development
 
@@ -179,6 +179,15 @@ Run the package tests from the package root:
 ```sh
 swift test
 ```
+
+Formatting is owned by `swift-format` against the checked-in `.swift-format`:
+
+```sh
+swift format --in-place --recursive Sources Tests
+swift format lint --strict --recursive Sources Tests
+```
+
+Lint runs in CI, and every public declaration must carry a documentation comment.
 
 ## License
 
