@@ -1,3 +1,4 @@
+#if os(iOS) || os(macOS)
 import SwiftUI
 
 enum Tokens {
@@ -64,10 +65,9 @@ enum Tokens {
     static var background: Color {
         #if os(macOS)
         Color(nsColor: .windowBackgroundColor)
-        #elseif os(iOS)
-        Color(.systemBackground)
         #else
-        Color.black
+        Color(.systemBackground)
         #endif
     }
 }
+#endif

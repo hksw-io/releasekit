@@ -1,3 +1,4 @@
+#if os(iOS) || os(macOS)
 import SwiftUI
 
 /// One row in the release sheet: an optional icon, an optional bold label, and a description.
@@ -130,3 +131,4 @@ public extension ReleaseContent {
         nil
     }
 }
+#endif
