@@ -150,14 +150,13 @@ The sheet is one API with two deliberately different presentations. You do not c
 
 | | iOS | macOS |
 |---|---|---|
-| Footer button | Full width, sized for touch | Natural width, trailing edge |
 | Return | Activates the button | Activates the button |
 | Escape | — (swipe-to-dismiss stays disabled) | Runs `onDismiss` |
 | Scroll indicator | Hidden | Normal overlay scroller |
 | Sheet size | Presenter's detents | `presentationSizing(.form)`, 460×580 floor |
-| Reveal motion | Full stagger | About half the travel and run |
+| Reveal motion | 38pt travel | 20pt travel, leads sooner |
 
-Both platforms use the system prominent button style, so press, hover, focus, and Increase Contrast behavior come from the platform rather than from anything this package draws.
+The footer button is a full-width prominent capsule on both platforms. The sheet is a single-action surface, so the button reads as the end of the content rather than as a Mac sheet's bottom-trailing default button. Both platforms use the system prominent button style, so press, hover, focus, and Increase Contrast behavior come from the platform rather than from anything this package draws.
 
 Escape is bound to `onDismiss` rather than dismissing the sheet natively. That matters: a native dismissal would bypass your closure and skip whatever you do there — `ReleaseVersionTracker.markAsShown()`, typically — so the sheet would return on the next launch. Every exit runs `onDismiss`.
 

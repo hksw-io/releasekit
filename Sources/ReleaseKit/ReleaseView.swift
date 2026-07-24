@@ -19,9 +19,8 @@ import SwiftUI
 /// ```
 ///
 /// The footer is a bottom safe-area bar, so content scrolls beneath it and the system's scroll edge
-/// effect keeps overflowing rows legible where they meet it. Its button is full-width on iOS and
-/// natural-width at the trailing edge on macOS, where a Mac sheet puts its default action. Feature
-/// rows animate in with a staggered reveal — shorter on macOS — that is suppressed under Reduce
+/// effect keeps overflowing rows legible where they meet it. Its button spans the footer on both
+/// platforms. Feature rows animate in with a staggered reveal that is suppressed under Reduce
 /// Motion. Layout adapts to compact and regular widths, to Dynamic Type, and to resizable macOS
 /// windows.
 ///
@@ -347,12 +346,12 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
     }
 }
 
-/// The footer's primary action, diverging by platform on purpose.
+/// The footer's primary action: a full-width prominent capsule on both platforms.
 ///
-/// iOS gets a full-width prominent button, the shape a touch target at the bottom of a sheet wants.
-/// macOS gets the same button at its natural width, aligned trailing, where a Mac sheet puts its
-/// default action. Both are system button styles, so press, hover, focus, and contrast behavior come
-/// from the platform rather than from hand-drawn state.
+/// The sheet is a single-action surface, and the action reads as the end of the content rather than
+/// as a Mac sheet's bottom-trailing default button — so it spans the footer on macOS too.
+/// `.buttonSizing(.flexible)` does the spanning, rather than stretching the label inside it. The
+/// system button style supplies press, hover, focus, and contrast behavior on both platforms.
 private struct ReleaseDismissButton: View {
     let label: Text
     let style: ReleaseStyle
@@ -362,13 +361,17 @@ private struct ReleaseDismissButton: View {
         Button {
             self.onDismiss()
         } label: {
-            self.buttonLabel
+            self.label
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .releaseOptionalForegroundStyle(self.style.buttonForegroundColor)
         }
         .buttonStyle(.glassProminent)
+        .buttonBorderShape(.capsule)
+        .buttonSizing(.flexible)
         .controlSize(.large)
         .keyboardShortcut(.defaultAction)
         #if os(macOS)
-        .frame(maxWidth: .infinity, alignment: .trailing)
         .background {
             self.escapeShortcut
         }
@@ -389,19 +392,6 @@ private struct ReleaseDismissButton: View {
     }
     #endif
 
-    private var buttonLabel: some View {
-        let label =
-            self.label
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-            .releaseOptionalForegroundStyle(self.style.buttonForegroundColor)
-
-        #if os(iOS)
-        return label.frame(maxWidth: .infinity)
-        #else
-        return label
-        #endif
-    }
 }
 
 private extension View {

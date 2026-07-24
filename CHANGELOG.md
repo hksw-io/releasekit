@@ -17,7 +17,7 @@ Platform idioms and API currency for iOS 26 / macOS 26. The package had platform
 ### Changed
 
 - **Breaking:** `ReleaseStyle.buttonForegroundColor` defaults to the system's prominent-button label color instead of white. Set it explicitly to keep a specific color.
-- The footer button now diverges by platform. iOS keeps a full-width prominent button; macOS gets it at natural width, aligned trailing, where a Mac sheet puts its default action. Both use `.glassProminent`, so press, hover, focus, and contrast behavior come from the platform rather than from a hand-drawn `.plain` button that had no press state on iOS and no hover state on macOS.
+- The footer button is a `.glassProminent` capsule spanning the footer on both platforms, via `buttonSizing(.flexible)`. Press, hover, focus, and contrast behavior now come from the platform rather than from a hand-drawn `.plain` button that had no press state on iOS and no hover state on macOS.
 - The pinned footer is a `safeAreaBar` with the system scroll edge effect, replacing a root `GeometryReader`, an overlay, a measured footer frame, and a hand-built gradient mask — about 145 lines.
 - macOS shows its normal overlay scroller. Hiding it applied an iPhone assumption to a pointer; it is how a Mac signals that a list continues, and it already hides itself when idle.
 - Feature reveal motion is tuned per platform: macOS takes roughly half the travel and half the total run. The curve is now a spring rather than `easeOut`. Reduce Motion still suppresses the reveal entirely.
