@@ -288,7 +288,7 @@ private struct ReleaseFeatureRow: View {
         .opacity(isVisible ? 1 : 0)
         .offset(y: isVisible ? 0 : (self.reduceMotion ? 0 : Tokens.Motion.revealOffset))
         .animation(
-            self.reduceMotion ? nil : .easeOut(duration: Tokens.Motion.revealDuration).delay(delay),
+            self.reduceMotion ? nil : .smooth(duration: Tokens.Motion.revealDuration).delay(delay),
             value: isVisible)
     }
 }

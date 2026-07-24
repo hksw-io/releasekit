@@ -21,11 +21,22 @@ enum Tokens {
     }
 
     enum Motion {
+        // A staggered entrance reads as welcome on a phone and as theatre on a Mac, where sheets
+        // are expected to be ready when they appear. macOS gets roughly half the travel and half
+        // the total run.
+        #if os(macOS)
+        static let featureBaseDelay: Double = 0.14
+        static let featureStaggerDelay: Double = 0.07
+        static let maxFeatureStaggerDelay: Double = 0.28
+        static let revealDuration: Double = 0.34
+        static let revealOffset: CGFloat = 16
+        #else
         static let featureBaseDelay: Double = 0.3
         static let featureStaggerDelay: Double = 0.17
         static let maxFeatureStaggerDelay: Double = 0.68
         static let revealDuration: Double = 0.48
         static let revealOffset: CGFloat = 38
+        #endif
 
         static func revealDelay(for index: Int) -> Double {
             let staggerDelay = min(Double(max(0, index)) * self.featureStaggerDelay, self.maxFeatureStaggerDelay)
