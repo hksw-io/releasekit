@@ -118,8 +118,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         .releaseTint(self.style.tint)
         #if os(macOS)
         .frame(
-            minWidth: Tokens.Layout.compactSheetMinWidth,
-            minHeight: Tokens.Layout.compactSheetMinHeight)
+            minWidth: Tokens.Platform.sheetMinWidth,
+            minHeight: Tokens.Platform.sheetMinHeight
+        )
+        .presentationSizing(.form)
         #endif
         .onAppear {
             self.featuresVisible = true
@@ -152,7 +154,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             for: self.containerWidth,
             compact: self.compactHorizontalPadding,
             regular: self.regularHorizontalPadding,
-            breakpoint: Tokens.Layout.compactWidthBreakpoint)
+            breakpoint: Tokens.Platform.compactWidthBreakpoint)
     }
 }
 

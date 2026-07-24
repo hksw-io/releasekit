@@ -15,9 +15,6 @@ enum Tokens {
         static let contentMaxWidth: CGFloat = 560
         static let compactHorizontalPadding: CGFloat = 16
         static let regularHorizontalPadding: CGFloat = 24
-        static let compactWidthBreakpoint: CGFloat = 390
-        static let compactSheetMinWidth: CGFloat = 320
-        static let compactSheetMinHeight: CGFloat = 560
         static let footerControlSpacing: CGFloat = Spacing.medium
         static let footerTopPadding: CGFloat = 20
         static let footerBottomPadding: CGFloat = Spacing.medium
@@ -44,6 +41,11 @@ enum Tokens {
         static let featureSpacing: CGFloat = 20
         static let topPadding: CGFloat = 32
         static let bottomPadding: CGFloat = 20
+        /// Below this the sheet tightens to compact padding. A Mac sheet is never as narrow as a
+        /// phone, so the threshold sits well above the iPhone one.
+        static let compactWidthBreakpoint: CGFloat = 480
+        static let sheetMinWidth: CGFloat = 460
+        static let sheetMinHeight: CGFloat = 580
         #else
         static let iconSize: CGFloat = 100
         static let featureIconSize: CGFloat = 35
@@ -51,6 +53,8 @@ enum Tokens {
         static let featureSpacing: CGFloat = 32
         static let topPadding: CGFloat = 32
         static let bottomPadding: CGFloat = 24
+        /// Roughly the widest iPhone in portrait, so only the largest phones get regular padding.
+        static let compactWidthBreakpoint: CGFloat = 390
         #endif
     }
 
