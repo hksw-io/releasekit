@@ -2,11 +2,25 @@
 import Foundation
 import SwiftUI
 
+/// Environment values handed to a custom background so it can stay consistent and accessible.
+///
+/// Read these rather than querying the environment directly, so a custom background reacts to the
+/// same inputs the built-in ones do.
 public struct ReleaseBackgroundContext: Equatable, Sendable {
+    /// Whether Reduce Motion is enabled. Custom backgrounds must not animate when this is `true`.
     public let reduceMotion: Bool
+    /// The `tint` from the applied ``ReleaseStyle``, or `nil` when the style sets no tint.
     public let brandColor: Color?
+    /// The active color scheme, so a background can pick its own light and dark tones.
     public let colorScheme: ColorScheme
 
+    /// Creates a context. The package builds this for you; construct one directly only in tests or
+    /// previews.
+    ///
+    /// - Parameters:
+    ///   - reduceMotion: Whether Reduce Motion is enabled.
+    ///   - brandColor: Brand color from the applied style.
+    ///   - colorScheme: The active color scheme.
     public init(
         reduceMotion: Bool,
         brandColor: Color? = nil,
@@ -18,13 +32,29 @@ public struct ReleaseBackgroundContext: Equatable, Sendable {
     }
 }
 
+/// Exact light and dark tones for the gradient backgrounds.
+///
+/// Pass one when brand-derived tones are not close enough; otherwise ``brand(_:)`` derives a full
+/// palette from a single color.
 public struct ReleaseGradientPalette: Equatable, Sendable {
+    /// The four colors a gradient background draws with in one color scheme.
     public struct Tones: Equatable, Sendable {
+        /// The surface color under the gradient, and the color veiling its edges.
         public var base: Color
+        /// The dominant gradient color.
         public var primary: Color
+        /// The second gradient color.
         public var secondary: Color
+        /// The third gradient color, carrying the least weight.
         public var accent: Color
 
+        /// Creates a set of tones for one color scheme.
+        ///
+        /// - Parameters:
+        ///   - base: Surface color under the gradient.
+        ///   - primary: Dominant gradient color.
+        ///   - secondary: Second gradient color.
+        ///   - accent: Third gradient color.
         public init(base: Color, primary: Color, secondary: Color, accent: Color) {
             self.base = base
             self.primary = primary
@@ -33,18 +63,34 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
         }
     }
 
+    /// Tones used in light mode.
     public var light: Tones
+    /// Tones used in dark mode.
     public var dark: Tones
 
+    /// The blue-derived palette used when no brand color or palette is supplied.
     public static var standard: Self {
         self.brand(.blue)
     }
 
+    /// Creates a palette.
+    ///
+    /// - Parameters:
+    ///   - light: Tones for light mode.
+    ///   - dark: Tones for dark mode. Passing `nil` reuses `light` in both schemes, which is rarely
+    ///     what you want for a saturated palette — dark mode needs its own tones to stay readable.
     public init(light: Tones, dark: Tones? = nil) {
         self.light = light
         self.dark = dark ?? light
     }
 
+    /// Derives a full light and dark palette from a single brand color.
+    ///
+    /// The brand color becomes `primary` in both schemes; the supporting tones differ per scheme,
+    /// and `base` follows the platform surface color.
+    ///
+    /// - Parameter brand: The color to build the palette around.
+    /// - Returns: A palette tuned for both color schemes.
     public static func brand(_ brand: Color) -> Self {
         Self(
             light: Tones(
@@ -64,13 +110,25 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
     }
 }
 
+/// How much the animated gradient moves, and how much contrast it carries.
+///
+/// Higher strength increases travel, speed, and color contrast together. Reduce Motion overrides
+/// this entirely — the gradient goes static regardless of strength.
 public struct ReleaseGradientMotion: Equatable, Sendable {
+    /// Motion intensity. Clamped to `0...2` when used; `0` holds the color field still.
     public var strength: Double
 
+    /// Calm movement, for content-heavy sheets.
     public static let subtle = Self(strength: 0.7)
+    /// The default balance of movement and contrast.
     public static let standard = Self(strength: 1.2)
+    /// Pronounced movement and contrast, for a launch or a major release.
     public static let expressive = Self(strength: 1.6)
 
+    /// Creates a motion setting.
+    ///
+    /// - Parameter strength: Motion intensity, clamped to `0...2` when applied. Pass `0` to keep
+    ///   the gradient's color field static while still rendering it.
     public init(strength: Double = 1.2) {
         self.strength = strength
     }
@@ -100,6 +158,19 @@ public struct ReleaseGradientMotion: Equatable, Sendable {
     }
 }
 
+/// The surface drawn behind the release sheet's content.
+///
+/// Apply one with ``ReleaseView/releaseBackground(_:)``. Every option spans the full sheet,
+/// including the area behind the pinned footer, so the footer never sits on a seam.
+///
+/// ```swift
+/// ReleaseView(content: MyRelease()) { isShowing = false }
+///     .releaseBackground(.animatedGradient())
+///     .releaseStyle(ReleaseStyle(tint: .indigo))
+/// ```
+///
+/// The gradient options take their brand color from ``ReleaseStyle/tint`` unless you pass `brand:`
+/// or a full `palette:`. Use ``ReleaseStyle`` for the colors on top of this surface.
 public struct ReleaseBackground: Sendable {
     enum Storage: Sendable {
         case system
@@ -111,9 +182,22 @@ public struct ReleaseBackground: Sendable {
 
     let storage: Storage
 
+    /// The default: the platform sheet surface, with no gradient.
     public static var system: Self { Self(storage: .system) }
+
+    /// A restrained brand-derived gradient, tuned to keep content readable.
+    ///
+    /// Uses ``ReleaseStyle/tint`` as its brand color. Use ``softGradient(brand:palette:)`` to
+    /// override that.
     public static var softGradient: Self { Self(storage: .softGradient(brand: nil, palette: nil)) }
 
+    /// A restrained brand-derived gradient with an explicit brand color or palette.
+    ///
+    /// - Parameters:
+    ///   - brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``, then to
+    ///     blue.
+    ///   - palette: Exact light and dark tones. Takes precedence over `brand` when both are given.
+    /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
     public static func softGradient(
         brand: Color? = nil,
         palette: ReleaseGradientPalette? = nil
@@ -121,6 +205,14 @@ public struct ReleaseBackground: Sendable {
         Self(storage: .softGradient(brand: brand, palette: palette))
     }
 
+    /// A static linear gradient from app-provided colors, with the library's footer treatment.
+    ///
+    /// - Parameters:
+    ///   - colors: Gradient stops. An empty array falls back to the platform surface color, and a
+    ///     single color renders flat.
+    ///   - startPoint: Where the gradient begins.
+    ///   - endPoint: Where the gradient ends.
+    /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
     public static func linearGradient(
         colors: [Color],
         startPoint: UnitPoint = .topLeading,
@@ -129,6 +221,17 @@ public struct ReleaseBackground: Sendable {
         Self(storage: .linearGradient(colors: colors, startPoint: startPoint, endPoint: endPoint))
     }
 
+    /// A slowly drifting full-surface gradient, rendered in a `Canvas`.
+    ///
+    /// Adapts its tones to the color scheme, and becomes static automatically when Reduce Motion is
+    /// enabled — no extra handling needed at the call site.
+    ///
+    /// - Parameters:
+    ///   - brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``, then to
+    ///     blue.
+    ///   - palette: Exact light and dark tones. Takes precedence over `brand` when both are given.
+    ///   - motion: How much the gradient moves. Defaults to ``ReleaseGradientMotion/standard``.
+    /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
     public static func animatedGradient(
         brand: Color? = nil,
         palette: ReleaseGradientPalette? = nil,
@@ -137,6 +240,26 @@ public struct ReleaseBackground: Sendable {
         Self(storage: .animatedGradient(brand: brand, palette: palette, motion: motion))
     }
 
+    /// A fully custom SwiftUI background.
+    ///
+    /// The closure receives a ``ReleaseBackgroundContext``; read `reduceMotion`, `brandColor`, and
+    /// `colorScheme` from it so a custom surface stays as consistent and accessible as the built-in
+    /// ones.
+    ///
+    /// ```swift
+    /// .releaseBackground(.custom { context in
+    ///     LinearGradient(
+    ///         colors: [
+    ///             .blue.opacity(context.reduceMotion ? 0.10 : 0.18),
+    ///             context.colorScheme == .dark ? .purple.opacity(0.24) : .purple.opacity(0.12),
+    ///         ],
+    ///         startPoint: .top,
+    ///         endPoint: .bottom)
+    /// })
+    /// ```
+    ///
+    /// - Parameter background: Builds the background for a given context. Runs on the main actor.
+    /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
     public static func custom<Background: View>(
         @ViewBuilder _ background: @Sendable @MainActor @escaping (ReleaseBackgroundContext) -> Background
     ) -> Self {

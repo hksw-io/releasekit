@@ -1,6 +1,29 @@
 #if os(iOS) || os(macOS)
 import SwiftUI
 
+/// A "What's New" sheet: an app icon, a title, a scrolling list of features, and a pinned footer
+/// with an optional notice and a dismiss button.
+///
+/// Supply the copy through a ``ReleaseContent`` conformer and present it however the app prefers —
+/// usually a sheet. Dismissal stays with the caller through `onDismiss`; the view never dismisses
+/// itself, and interactive dismissal is disabled so the button is the only way out.
+///
+/// ```swift
+/// ContentView()
+///     .sheet(isPresented: $isShowing) {
+///         ReleaseView(content: MyRelease()) {
+///             isShowing = false
+///         }
+///     }
+/// ```
+///
+/// Content scrolls behind the pinned footer, which fades overflowing rows only above itself;
+/// reaching the end of the list restores full opacity. Feature rows animate in with a staggered
+/// reveal that is suppressed under Reduce Motion. Layout adapts to compact and regular widths, to
+/// Dynamic Type, and to resizable macOS windows.
+///
+/// Use ``releaseBackground(_:)`` for the surface and ``releaseStyle(_:)`` for foreground colors.
+/// Pair with ``ReleaseVersionTracker`` to decide when to present.
 public struct ReleaseView<Content: ReleaseContent>: View {
     let content: Content
     let onDismiss: () -> Void
@@ -26,11 +49,18 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @ScaledMetric(relativeTo: .body) private var regularHorizontalPadding: CGFloat = Tokens.Layout
         .regularHorizontalPadding
 
+    /// Creates a release sheet.
+    ///
+    /// - Parameters:
+    ///   - content: The copy and icon to present.
+    ///   - onDismiss: Called when the footer button is tapped. The caller owns dismissal — the view
+    ///     does not dismiss itself.
     public init(content: Content, onDismiss: @escaping () -> Void) {
         self.content = content
         self.onDismiss = onDismiss
     }
 
+    /// The composed sheet: background, scrolling content, and the pinned footer overlay.
     public var body: some View {
         ZStack {
             ReleaseBackgroundView(
@@ -120,12 +150,21 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         }
     }
 
+    /// Sets the surface drawn behind the sheet's content.
+    ///
+    /// - Parameter background: The background to draw. Defaults to ``ReleaseBackground/system``.
+    /// - Returns: A copy of the view using the given background.
     public func releaseBackground(_ background: ReleaseBackground) -> Self {
         var view = self
         view.background = background
         return view
     }
 
+    /// Sets the foreground colors for the title, feature rows, notice, and button.
+    ///
+    /// - Parameter style: The colors to apply. Any property left `nil` keeps its standard system
+    ///   treatment.
+    /// - Returns: A copy of the view using the given style.
     public func releaseStyle(_ style: ReleaseStyle) -> Self {
         var view = self
         view.style = style
