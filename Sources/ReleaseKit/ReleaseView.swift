@@ -6,7 +6,8 @@ import SwiftUI
 ///
 /// Supply the copy through a ``ReleaseContent`` conformer and present it however the app prefers —
 /// usually a sheet. Dismissal stays with the caller through `onDismiss`; the view never dismisses
-/// itself, and interactive dismissal is disabled so the button is the only way out.
+/// itself, and interactive dismissal is disabled, so every exit runs that closure. Return activates
+/// the button on both platforms, and on macOS Escape runs `onDismiss` too.
 ///
 /// ```swift
 /// ContentView()
@@ -18,9 +19,11 @@ import SwiftUI
 /// ```
 ///
 /// The footer is a bottom safe-area bar, so content scrolls beneath it and the system's scroll edge
-/// effect keeps overflowing rows legible where they meet it. Feature rows animate in with a
-/// staggered reveal that is suppressed under Reduce Motion. Layout adapts to compact and regular
-/// widths, to Dynamic Type, and to resizable macOS windows.
+/// effect keeps overflowing rows legible where they meet it. Its button is full-width on iOS and
+/// natural-width at the trailing edge on macOS, where a Mac sheet puts its default action. Feature
+/// rows animate in with a staggered reveal — shorter on macOS — that is suppressed under Reduce
+/// Motion. Layout adapts to compact and regular widths, to Dynamic Type, and to resizable macOS
+/// windows.
 ///
 /// Use ``releaseBackground(_:)`` for the surface and ``releaseStyle(_:)`` for foreground colors.
 /// Pair with ``ReleaseVersionTracker`` to decide when to present.

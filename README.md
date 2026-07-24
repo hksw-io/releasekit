@@ -137,11 +137,31 @@ ReleaseView(content: MyRelease()) {
     titleColor: .primary,
     featureIconColor: .mint,
     featureDescriptionColor: .secondary,
-    noticeColor: .secondary,
-    buttonForegroundColor: .white))
+    noticeColor: .secondary))
 ```
 
 `ReleaseBackground` controls the surface behind the sheet content. `ReleaseStyle` controls foreground roles such as title, feature rows, notice text, and button text. Any color you leave as `nil` uses the standard system treatment. `tint` controls the prominent button accent and is also used by feature icons unless `featureIconColor` is set.
+
+`buttonForegroundColor` is left out of the example on purpose. Its default is the system's prominent-button label color, which already adapts to your tint, to light and dark mode, and to Increase Contrast — setting it to a fixed color usually costs you contrast somewhere.
+
+## Platform behavior
+
+The sheet is one API with two deliberately different presentations. You do not configure this; it follows the platform.
+
+| | iOS | macOS |
+|---|---|---|
+| Footer button | Full width, sized for touch | Natural width, trailing edge |
+| Return | Activates the button | Activates the button |
+| Escape | — (swipe-to-dismiss stays disabled) | Runs `onDismiss` |
+| Scroll indicator | Hidden | Normal overlay scroller |
+| Sheet size | Presenter's detents | `presentationSizing(.form)`, 460×580 floor |
+| Reveal motion | Full stagger | About half the travel and run |
+
+Both platforms use the system prominent button style, so press, hover, focus, and Increase Contrast behavior come from the platform rather than from anything this package draws.
+
+Escape is bound to `onDismiss` rather than dismissing the sheet natively. That matters: a native dismissal would bypass your closure and skip whatever you do there — `ReleaseVersionTracker.markAsShown()`, typically — so the sheet would return on the next launch. Every exit runs `onDismiss`.
+
+Text in the title and feature rows is selectable, which Mac users expect of a window they may want to copy out of.
 
 ## Features and localization
 

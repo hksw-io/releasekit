@@ -4,6 +4,29 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Platform idioms and API currency for iOS 26 / macOS 26. The package had platform-aware *measurements* but a single iOS interaction model; this pass splits the parts a Mac user actually touches.
+
+### Added
+
+- Keyboard support, which the sheet previously had none of. Return activates the footer button on both platforms. On macOS, Escape also runs `onDismiss` — it is bound to the same closure rather than dismissing the sheet natively, so the caller's bookkeeping (typically `markAsShown()`) still runs.
+- Text selection for the title and feature rows, so release copy can be copied out of a Mac window.
+- `presentationSizing(.form)` on macOS over a 460x580 floor, replacing a 320x560 minimum that was an iPhone SE width used as a Mac sheet size.
+
+### Changed
+
+- **Breaking:** `ReleaseStyle.buttonForegroundColor` defaults to the system's prominent-button label color instead of white. Set it explicitly to keep a specific color.
+- The footer button now diverges by platform. iOS keeps a full-width prominent button; macOS gets it at natural width, aligned trailing, where a Mac sheet puts its default action. Both use `.glassProminent`, so press, hover, focus, and contrast behavior come from the platform rather than from a hand-drawn `.plain` button that had no press state on iOS and no hover state on macOS.
+- The pinned footer is a `safeAreaBar` with the system scroll edge effect, replacing a root `GeometryReader`, an overlay, a measured footer frame, and a hand-built gradient mask — about 145 lines.
+- macOS shows its normal overlay scroller. Hiding it applied an iPhone assumption to a pointer; it is how a Mac signals that a list continues, and it already hides itself when idle.
+- Feature reveal motion is tuned per platform: macOS takes roughly half the travel and half the total run. The curve is now a spring rather than `easeOut`. Reduce Motion still suppresses the reveal entirely.
+- The app icon is clipped with continuous curvature, matching the squircle an app icon actually is.
+
+### Removed
+
+- **Breaking:** the internal `buttonBackgroundStyle` / `buttonForegroundStyle` helpers on `ReleaseStyle`, along with the `Radius.button`, `minimumControlHeight` (the iOS *touch* target, wrong for a Mac pointer), `buttonLabelMinHeight`, and `buttonVerticalPadding` tokens. System button styles own the button's size and shape now.
+
 ## [1.0.0] - 2026-07-24
 
 First tagged release. Everything before this was consumed off the `master` branch.
