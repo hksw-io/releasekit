@@ -2,7 +2,7 @@
 import Foundation
 import SwiftUI
 
-public struct ReleaseBackgroundContext {
+public struct ReleaseBackgroundContext: Equatable, Sendable {
     public let reduceMotion: Bool
     public let brandColor: Color?
     public let colorScheme: ColorScheme
@@ -18,8 +18,8 @@ public struct ReleaseBackgroundContext {
     }
 }
 
-public struct ReleaseGradientPalette {
-    public struct Tones {
+public struct ReleaseGradientPalette: Equatable, Sendable {
+    public struct Tones: Equatable, Sendable {
         public var base: Color
         public var primary: Color
         public var secondary: Color
@@ -100,13 +100,13 @@ public struct ReleaseGradientMotion: Equatable, Sendable {
     }
 }
 
-public struct ReleaseBackground {
-    enum Storage {
+public struct ReleaseBackground: Sendable {
+    enum Storage: Sendable {
         case system
         case softGradient(brand: Color?, palette: ReleaseGradientPalette?)
         case linearGradient(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint)
         case animatedGradient(brand: Color?, palette: ReleaseGradientPalette?, motion: ReleaseGradientMotion)
-        case custom((ReleaseBackgroundContext) -> AnyView)
+        case custom(@Sendable @MainActor (ReleaseBackgroundContext) -> AnyView)
     }
 
     let storage: Storage
@@ -138,7 +138,7 @@ public struct ReleaseBackground {
     }
 
     public static func custom<Background: View>(
-        @ViewBuilder _ background: @escaping (ReleaseBackgroundContext) -> Background
+        @ViewBuilder _ background: @Sendable @MainActor @escaping (ReleaseBackgroundContext) -> Background
     ) -> Self {
         Self(
             storage: .custom { context in

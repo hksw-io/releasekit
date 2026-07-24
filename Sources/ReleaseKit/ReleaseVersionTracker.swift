@@ -1,6 +1,8 @@
 import Foundation
 
-public struct ReleaseVersionTracker {
+/// `UserDefaults` is an Objective-C class that is thread-safe by contract but carries no Swift
+/// `Sendable` conformance, so the checking has to be opted out of here rather than derived.
+public struct ReleaseVersionTracker: @unchecked Sendable {
     private let userDefaults: UserDefaults
     private let currentVersion: String
     private let lastShownVersionKey: String

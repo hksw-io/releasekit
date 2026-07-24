@@ -1,7 +1,7 @@
 #if os(iOS) || os(macOS)
 import SwiftUI
 
-public struct ReleaseStyle {
+public struct ReleaseStyle: Equatable, Sendable {
     public var tint: Color?
     public var titleColor: Color?
     public var featureIconColor: Color?

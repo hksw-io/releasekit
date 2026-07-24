@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct ReleaseFeature: Identifiable {
+public struct ReleaseFeature: Identifiable, Equatable, Sendable {
     public let id: String
     public let image: Image?
     public let label: Text?
@@ -26,15 +26,19 @@ public struct ReleaseFeature: Identifiable {
     }
 }
 
-public struct ReleaseNotice {
+public struct ReleaseNotice: Equatable, Sendable {
     public let text: Text
 
     public init(text: Text) {
         self.text = text
     }
+
+    public init(_ text: LocalizedStringResource) {
+        self.text = Text(text)
+    }
 }
 
-public protocol ReleaseContent {
+public protocol ReleaseContent: Sendable {
     var appIcon: Image? { get }
     var title: Text { get }
     var features: [ReleaseFeature] { get }
@@ -44,6 +48,10 @@ public protocol ReleaseContent {
 
 public extension ReleaseContent {
     var appIcon: Image? {
+        nil
+    }
+
+    var notice: ReleaseNotice? {
         nil
     }
 }

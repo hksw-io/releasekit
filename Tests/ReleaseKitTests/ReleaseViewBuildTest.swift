@@ -453,6 +453,62 @@ struct ReleaseViewBuildTest {
             .releaseBackground(background)
     }
 
+    @Test
+    func contentOmittingNoticeUsesProtocolDefault() {
+        struct MinimalContent: ReleaseContent {
+            var title: Text { Text("Minimal") }
+            var features: [ReleaseFeature] { [] }
+            var buttonText: Text { Text("OK") }
+        }
+
+        #expect(MinimalContent().notice == nil)
+        #expect(MinimalContent().appIcon == nil)
+        _ = ReleaseView(content: MinimalContent(), onDismiss: {})
+    }
+
+    @Test
+    func noticeAcceptsLocalizedStringResource() {
+        let localized = ReleaseNotice("Plus many other improvements.")
+        let explicit = ReleaseNotice(text: Text(LocalizedStringResource("Plus many other improvements.")))
+
+        #expect(localized == explicit)
+    }
+
+    @Test
+    func featuresCompareByValue() {
+        let feature = ReleaseFeature(id: "shared", label: Text("Label"), description: Text("Body."))
+        let same = ReleaseFeature(id: "shared", label: Text("Label"), description: Text("Body."))
+        let renamed = ReleaseFeature(id: "shared", label: Text("Other"), description: Text("Body."))
+        let reidentified = ReleaseFeature(id: "other", label: Text("Label"), description: Text("Body."))
+
+        #expect(feature == same)
+        #expect(feature != renamed)
+        #expect(feature != reidentified)
+    }
+
+    @Test
+    func stylesCompareByValue() {
+        #expect(ReleaseStyle(tint: .indigo) == ReleaseStyle(tint: .indigo))
+        #expect(ReleaseStyle(tint: .indigo) != ReleaseStyle(tint: .mint))
+        #expect(ReleaseStyle.standard == ReleaseStyle())
+    }
+
+    @Test
+    func noticesCompareByValue() {
+        #expect(ReleaseNotice(text: Text("Same")) == ReleaseNotice(text: Text("Same")))
+        #expect(ReleaseNotice(text: Text("Same")) != ReleaseNotice(text: Text("Different")))
+    }
+
+    /// The one production consumer declares its conformer as a `public struct`, and public types
+    /// do not get `Sendable` inferred the way internal ones do. Every other conformer in this
+    /// suite is internal, so this is the only case that would catch a regression there.
+    @Test
+    func publicConformerSatisfiesSendableRequirement() {
+        _ = ReleaseView(content: PublicContent(), onDismiss: {})
+
+        #expect(PublicContent().notice == nil)
+    }
+
     private func totalTravel(from first: [CGPoint], to second: [CGPoint]) -> Double {
         zip(first, second).reduce(0) { total, pair in
             let xDistance = Double(pair.0.x - pair.1.x)
@@ -460,6 +516,19 @@ struct ReleaseViewBuildTest {
             return total + ((xDistance * xDistance) + (yDistance * yDistance)).squareRoot()
         }
     }
+}
+
+/// Mirrors the production consumer's shape: a `public struct` conformer. It omits `notice` so the
+/// protocol default is exercised at the same time.
+public struct PublicContent: ReleaseContent {
+    public init() {}
+
+    public var appIcon: Image? { Image(systemName: "app.gift.fill") }
+    public var title: Text { Text("Public") }
+    public var features: [ReleaseFeature] {
+        [ReleaseFeature(id: "public-feature", description: Text("A feature."))]
+    }
+    public var buttonText: Text { Text("Continue") }
 }
 
 private struct StyledContent: ReleaseContent {
