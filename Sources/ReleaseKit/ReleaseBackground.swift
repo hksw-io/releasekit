@@ -69,9 +69,7 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
     public var dark: Tones
 
     /// The blue-derived palette used when no brand color or palette is supplied.
-    public static var standard: Self {
-        self.brand(.blue)
-    }
+    public static let standard = Self.brand(.blue)
 
     /// Creates a palette.
     ///
@@ -183,13 +181,13 @@ public struct ReleaseBackground: Sendable {
     let storage: Storage
 
     /// The default: the platform sheet surface, with no gradient.
-    public static var system: Self { Self(storage: .system) }
+    public static let system = Self(storage: .system)
 
     /// A restrained brand-derived gradient, tuned to keep content readable.
     ///
     /// Uses ``ReleaseStyle/tint`` as its brand color. Use ``softGradient(brand:palette:)`` to
     /// override that.
-    public static var softGradient: Self { Self(storage: .softGradient(brand: nil, palette: nil)) }
+    public static let softGradient = Self(storage: .softGradient(brand: nil, palette: nil))
 
     /// A restrained brand-derived gradient with an explicit brand color or palette.
     ///

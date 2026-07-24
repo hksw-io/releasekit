@@ -20,7 +20,8 @@ import Foundation
 /// ```
 ///
 /// - Note: This type is `@unchecked Sendable`. `UserDefaults` is an Objective-C class that is
-///   thread-safe by contract but carries no Swift `Sendable` conformance to derive from.
+///   thread-safe by contract but still carries no Swift `Sendable` conformance to derive from, as of
+///   the macOS 27 SDK.
 public struct ReleaseVersionTracker: @unchecked Sendable {
     private let userDefaults: UserDefaults
     private let currentVersion: String

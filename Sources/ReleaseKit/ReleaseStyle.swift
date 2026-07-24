@@ -33,9 +33,7 @@ public struct ReleaseStyle: Equatable, Sendable {
     public var buttonForegroundColor: Color?
 
     /// The unbranded style: every role uses its standard system treatment.
-    public static var standard: Self {
-        Self()
-    }
+    public static let standard = Self()
 
     /// Creates a style, overriding only the roles you pass.
     ///
