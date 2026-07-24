@@ -28,7 +28,8 @@ public struct ReleaseStyle: Equatable, Sendable {
     public var featureDescriptionColor: Color?
     /// Color for the footer notice. `nil` uses the secondary treatment.
     public var noticeColor: Color?
-    /// Color for the button label. `nil` uses white, which reads against the tinted button fill.
+    /// Color for the button label. `nil` uses the system's prominent-button label color, which
+    /// already adapts to the tint, to light and dark mode, and to Increase Contrast.
     public var buttonForegroundColor: Color?
 
     /// The unbranded style: every role uses its standard system treatment.
@@ -76,14 +77,6 @@ extension ReleaseStyle {
 
     var noticeForegroundStyle: AnyShapeStyle {
         Self.foregroundStyle(for: self.noticeColor, fallback: AnyShapeStyle(.secondary))
-    }
-
-    var buttonForegroundStyle: AnyShapeStyle {
-        Self.foregroundStyle(for: self.buttonForegroundColor, fallback: AnyShapeStyle(.white))
-    }
-
-    var buttonBackgroundStyle: AnyShapeStyle {
-        Self.foregroundStyle(for: self.tint, fallback: AnyShapeStyle(.tint))
     }
 
     private static func foregroundStyle(for color: Color?, fallback: AnyShapeStyle) -> AnyShapeStyle {

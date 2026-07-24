@@ -130,11 +130,9 @@ struct ReleaseViewBuildTest {
     }
 
     @Test
-    func styleProvidesCustomButtonSurface() {
-        let style = ReleaseStyle(tint: .indigo, buttonForegroundColor: .white)
-
-        _ = style.buttonBackgroundStyle
-        _ = style.buttonForegroundStyle
+    func styleKeepsButtonLabelColorOptional() {
+        #expect(ReleaseStyle(tint: .indigo).buttonForegroundColor == nil)
+        #expect(ReleaseStyle(buttonForegroundColor: .white).buttonForegroundColor == .white)
     }
 
     @Test
@@ -214,22 +212,6 @@ struct ReleaseViewBuildTest {
         #expect(defaultContext.colorScheme == .light)
         #expect(!darkContext.reduceMotion)
         #expect(darkContext.colorScheme == .dark)
-    }
-
-    @Test
-    func primaryButtonKeepsSharedMinimumLabelHeight() {
-        #expect(Tokens.Layout.buttonLabelMinHeight == 28)
-    }
-
-    /// The footer button's intrinsic height is the label floor plus vertical padding on both
-    /// edges. On macOS that lands on exactly 44, so the HIG minimum is met by arithmetic rather
-    /// than by intent — this guards the invariant if either token is retuned.
-    @Test
-    func primaryButtonMeetsMinimumControlHeight() {
-        let intrinsicHeight =
-            Tokens.Layout.buttonLabelMinHeight + (Tokens.Platform.buttonVerticalPadding * 2)
-
-        #expect(intrinsicHeight >= Tokens.Layout.minimumControlHeight)
     }
 
     @Test

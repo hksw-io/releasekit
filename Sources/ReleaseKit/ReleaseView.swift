@@ -37,7 +37,6 @@ public struct ReleaseView<Content: ReleaseContent>: View {
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = Tokens.Platform.iconSize
     @ScaledMetric(relativeTo: .body) private var featureIconSize: CGFloat = Tokens.Platform.featureIconSize
-    @ScaledMetric(relativeTo: .body) private var buttonPadding: CGFloat = Tokens.Platform.buttonVerticalPadding
     @ScaledMetric(relativeTo: .body) private var contentSpacing: CGFloat = Tokens.Platform.contentSpacing
     @ScaledMetric(relativeTo: .body) private var featureSpacing: CGFloat = Tokens.Platform.featureSpacing
     @ScaledMetric(relativeTo: .body) private var topPadding: CGFloat = Tokens.Platform.topPadding
@@ -93,7 +92,6 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         .safeAreaBar(edge: .bottom) {
             ReleaseFooterSection(
                 content: self.content,
-                buttonPadding: self.buttonPadding,
                 style: self.style,
                 onDismiss: self.onDismiss
             )
@@ -287,7 +285,6 @@ private struct ReleaseFeatureRow: View {
 
 private struct ReleaseFooterSection<Content: ReleaseContent>: View {
     let content: Content
-    let buttonPadding: CGFloat
     let style: ReleaseStyle
     let onDismiss: () -> Void
 
@@ -302,28 +299,70 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
                     .frame(maxWidth: .infinity)
             }
 
-            Button {
-                self.onDismiss()
-            } label: {
-                self.content.buttonText
-                    .font(.body.weight(.semibold))
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .foregroundStyle(self.style.buttonForegroundStyle)
-                    .frame(maxWidth: .infinity, minHeight: Tokens.Layout.buttonLabelMinHeight)
-                    .padding(.vertical, self.buttonPadding)
-                    .frame(minHeight: Tokens.Layout.minimumControlHeight)
-                    .contentShape(RoundedRectangle(cornerRadius: Tokens.Radius.button, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .background {
-                RoundedRectangle(cornerRadius: Tokens.Radius.button, style: .continuous)
-                    .fill(self.style.buttonBackgroundStyle)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: Tokens.Radius.button, style: .continuous))
+            ReleaseDismissButton(
+                label: self.content.buttonText,
+                style: self.style,
+                onDismiss: self.onDismiss)
         }
         .padding(.top, Tokens.Layout.footerTopPadding)
         .padding(.bottom, Tokens.Layout.footerBottomPadding)
+    }
+}
+
+/// The footer's primary action, diverging by platform on purpose.
+///
+/// iOS gets a full-width prominent button, the shape a touch target at the bottom of a sheet wants.
+/// macOS gets the same button at its natural width, aligned trailing, where a Mac sheet puts its
+/// default action. Both are system button styles, so press, hover, focus, and contrast behavior come
+/// from the platform rather than from hand-drawn state.
+private struct ReleaseDismissButton: View {
+    let label: Text
+    let style: ReleaseStyle
+    let onDismiss: () -> Void
+
+    var body: some View {
+        Button {
+            self.onDismiss()
+        } label: {
+            self.buttonLabel
+        }
+        .buttonStyle(.glassProminent)
+        .controlSize(.large)
+        .keyboardShortcut(.defaultAction)
+        #if os(macOS)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .background {
+            self.escapeShortcut
+        }
+        #endif
+    }
+
+    #if os(macOS)
+    /// Escape is the Mac's cancel gesture. The sheet cannot be allowed to dismiss itself — that
+    /// bypasses `onDismiss` and leaves the caller's bookkeeping unrun — so Escape is bound to the
+    /// same closure as the button. `onExitCommand` does not reach a sheet's content, and a button
+    /// carries only one shortcut, so the binding lives on a zero-sized companion button.
+    private var escapeShortcut: some View {
+        Button("", action: self.onDismiss)
+            .keyboardShortcut(.cancelAction)
+            .frame(width: 0, height: 0)
+            .opacity(0)
+            .accessibilityHidden(true)
+    }
+    #endif
+
+    private var buttonLabel: some View {
+        let label =
+            self.label
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .releaseOptionalForegroundStyle(self.style.buttonForegroundColor)
+
+        #if os(iOS)
+        return label.frame(maxWidth: .infinity)
+        #else
+        return label
+        #endif
     }
 }
 
