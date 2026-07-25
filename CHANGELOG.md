@@ -4,7 +4,7 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.2] - 2026-07-25
 
 ### Changed
 
@@ -73,6 +73,7 @@ First tagged release. Everything before this was consumed off the `master` branc
 
 - Replaced the deprecated `ScrollView(_:showsIndicators:)` initializer, and removed a duplicate `scrollIndicators` modifier, an inert `controlSize` under `buttonStyle(.plain)`, and a redundant single-child `ZStack` in the footer overlay.
 
+[2.0.2]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.2
 [2.0.1]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.1
 [2.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.0
 [1.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/1.0.0

@@ -23,7 +23,7 @@ domain language `Release...`, for example `ReleaseView`, `ReleaseContent`, and
 ## Installation
 
 ```swift
-.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "2.0.1")
+.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "2.0.2")
 ```
 
 Or in Xcode: **File > Add Package Dependencies** and enter the URL above.
