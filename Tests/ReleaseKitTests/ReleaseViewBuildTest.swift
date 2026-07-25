@@ -214,22 +214,21 @@ struct ReleaseViewBuildTest {
         #expect(darkContext.colorScheme == .dark)
     }
 
-    /// A tall footer — a notice running to several lines — must erase the rows behind it rather
-    /// than let them show through, which is what the soft scroll edge effect did.
+    /// The fade band is the whole mask. `safeAreaBar` reserves the footer's height itself, so
+    /// erasing that height again blanks a second footer's worth of content above the real one.
     @Test
-    func footerMaskClearsMeasuredFooterHeight() {
-        #expect(ReleaseFooterMask.clamped(240) == 240)
-        #expect(ReleaseFooterMask.clamped(0) == 0)
+    func footerMaskFadesWithoutReservingFooterHeight() {
+        #expect(ReleaseFooterMask.clamped(Tokens.Platform.footerFadeHeight) == Tokens.Platform.footerFadeHeight)
+        #expect(Tokens.Platform.footerFadeHeight > 0)
     }
 
-    /// `onGeometryChange` reports zero before the first measured pass and can go slightly negative
-    /// mid-resize; either would flip the mask's frames.
+    /// A negative height would flip the mask's frame, and Dynamic Type scaling can hand one back.
     @Test
-    func footerMaskClampsUnmeasuredAndNegativeHeights() {
+    func footerMaskClampsNegativeHeights() {
         #expect(ReleaseFooterMask.clamped(-1) == 0)
         #expect(ReleaseFooterMask.clamped(-240) == 0)
 
-        _ = ReleaseFooterMask(footerHeight: -10, fadeHeight: -5)
+        _ = ReleaseFooterMask(fadeHeight: -5)
     }
 
     /// The button must clear the sheet edge rather than hug it, without floating so high that the

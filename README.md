@@ -122,7 +122,7 @@ ReleaseView(content: MyRelease()) {
 
 The built-in presets are `.subtle`, `.standard`, and `.expressive`. Stronger motion increases movement, speed, and gradient contrast. For finer control, pass `ReleaseGradientMotion(strength:)`; values are clamped from `0` to `2`, and `0` keeps the animated-gradient color field static.
 
-ReleaseKit keeps the footer pinned while content scrolls behind it. Rows are opaque above the footer, fade over a short band, and are erased behind it, so the background carries through unbroken and a footer running to several lines never has content showing through it.
+ReleaseKit keeps the footer pinned, sized to its own content. Rows fade out over a short band where they meet it, so the background carries through unbroken and a footer running to several lines never has content showing through it. The footer reserves no more space than it uses.
 
 ## Styling
 

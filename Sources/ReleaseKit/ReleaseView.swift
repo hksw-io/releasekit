@@ -36,7 +36,6 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var featuresVisible = false
     @State private var containerWidth: CGFloat = Tokens.Platform.assumedContainerWidth
-    @State private var footerHeight: CGFloat = 0
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = Tokens.Platform.iconSize
     @ScaledMetric(relativeTo: .body) private var featureIconSize: CGFloat = Tokens.Platform.featureIconSize
@@ -105,20 +104,19 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             .scrollIndicators(.never, axes: .vertical)
             #endif
             .scrollBounceBehavior(.basedOnSize)
-            // Erase the rows where the footer sits, with a short fade above it.
+            // Fade the rows out where they meet the bar.
             //
-            // Neither system edge effect can do this job here. The hard style occludes but draws a
-            // divider across a surface meant to be continuous; the soft style drops the divider but
-            // only fades, so a tall footer — a notice running to several lines — leaves its own text
-            // sitting on top of the rows behind it.
+            // Neither system edge effect fits. The hard style draws a divider across a surface meant
+            // to be continuous; the soft style drops the divider but bleeds a tall footer's own text
+            // over the rows behind it.
             //
-            // Masking the scroll view instead erases those rows outright, and because the background
-            // is a sibling behind it, whatever is back there shows through unbroken. That holds for
-            // the animated gradient too, which no bar-local background could match.
+            // The band is all that is needed. `safeAreaBar` already reserves the bar's height, so
+            // rows stop at its top edge rather than running underneath — erasing a footer's height
+            // as well, as this did at first, just blanks a second footer's worth of content above
+            // the real one. Because the background is a sibling behind the scroll view, it shows
+            // through the band unbroken, including the animated gradient.
             .mask {
-                ReleaseFooterMask(
-                    footerHeight: self.footerHeight,
-                    fadeHeight: self.footerFadeHeight)
+                ReleaseFooterMask(fadeHeight: self.footerFadeHeight)
             }
             .safeAreaBar(edge: .bottom) {
                 ReleaseFooterSection(
@@ -129,13 +127,6 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                 .frame(maxWidth: Tokens.Layout.contentMaxWidth)
                 .padding(.horizontal, self.horizontalPadding)
                 .frame(maxWidth: .infinity)
-                .onGeometryChange(for: CGFloat.self) { geometry in
-                    geometry.size.height
-                } action: { newHeight in
-                    if self.footerHeight != newHeight {
-                        self.footerHeight = newHeight
-                    }
-                }
             }
             .scrollEdgeEffectHidden(true, for: .bottom)
             .onGeometryChange(for: CGFloat.self) { geometry in
@@ -208,7 +199,6 @@ enum LayoutMetrics {
 /// The opaque section takes the remaining height rather than a measured one, so only the footer has
 /// to be measured — the container does not.
 struct ReleaseFooterMask: View {
-    let footerHeight: CGFloat
     let fadeHeight: CGFloat
 
     /// Heights arrive from `onGeometryChange`, which reports zero before the first measured pass and
@@ -229,9 +219,6 @@ struct ReleaseFooterMask: View {
                 endPoint: .bottom
             )
             .frame(height: Self.clamped(self.fadeHeight))
-
-            Color.clear
-                .frame(height: Self.clamped(self.footerHeight))
         }
     }
 }
