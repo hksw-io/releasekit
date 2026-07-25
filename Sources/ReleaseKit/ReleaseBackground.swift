@@ -84,8 +84,13 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
 
     /// Derives a full light and dark palette from a single brand color.
     ///
-    /// The brand color becomes `primary` in both schemes; the supporting tones differ per scheme,
-    /// and `base` follows the platform surface color.
+    /// The brand color becomes `primary`, and the supporting tones are that same color washed
+    /// toward the platform surface, so the field reads as one color rather than as three unrelated
+    /// hues. Because the surface is light in light mode and dark in dark mode, the same wash lifts
+    /// the palette in one and deepens it in the other.
+    ///
+    /// Dark mode washes less: a dark surface swallows chroma faster, so an equal mix would flatten
+    /// the supporting tones into the background.
     ///
     /// - Parameter brand: The color to build the palette around.
     /// - Returns: A palette tuned for both color schemes.
@@ -94,13 +99,13 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
             light: Tones(
                 base: Tokens.background,
                 primary: brand,
-                secondary: .cyan,
-                accent: .mint),
+                secondary: brand.mix(with: Tokens.background, by: 0.30),
+                accent: brand.mix(with: Tokens.background, by: 0.55)),
             dark: Tones(
                 base: Tokens.background,
                 primary: brand,
-                secondary: .purple,
-                accent: .cyan))
+                secondary: brand.mix(with: Tokens.background, by: 0.22),
+                accent: brand.mix(with: Tokens.background, by: 0.42)))
     }
 
     func tones(for colorScheme: ColorScheme) -> Tones {
@@ -568,28 +573,32 @@ private enum ReleaseGradientVisualTuning {
             bottomVeilOpacity: 0.78)
     }
 
+    /// The veil is the surface color painted back over the field. It is what keeps the gradient
+    /// behind the content rather than competing with it, and light mode previously had almost none
+    /// — a 0.38 base tint under a 0.04 veil, where `soft` reaches 0.78. That inversion is why the
+    /// animated background read heavy in light mode and calm in dark.
     static func animated(colorScheme: ColorScheme) -> ReleaseAnimatedGradientTuning {
         if colorScheme == .dark {
             return ReleaseAnimatedGradientTuning(
-                baseTintOpacity: 0.26,
-                primaryBlobOpacity: 0.46,
-                secondaryBlobOpacity: 0.40,
-                accentBlobOpacity: 0.38,
-                trailingBlobOpacity: 0.28,
-                topVeilOpacity: 0.04,
-                bottomVeilOpacity: 0.18,
-                blobBlurRatio: 0.028)
+                baseTintOpacity: 0.14,
+                primaryBlobOpacity: 0.30,
+                secondaryBlobOpacity: 0.24,
+                accentBlobOpacity: 0.22,
+                trailingBlobOpacity: 0.18,
+                topVeilOpacity: 0.30,
+                bottomVeilOpacity: 0.55,
+                blobBlurRatio: 0.036)
         }
 
         return ReleaseAnimatedGradientTuning(
-            baseTintOpacity: 0.38,
-            primaryBlobOpacity: 0.46,
-            secondaryBlobOpacity: 0.42,
-            accentBlobOpacity: 0.42,
-            trailingBlobOpacity: 0.32,
-            topVeilOpacity: 0,
-            bottomVeilOpacity: 0.04,
-            blobBlurRatio: 0.028)
+            baseTintOpacity: 0.16,
+            primaryBlobOpacity: 0.30,
+            secondaryBlobOpacity: 0.26,
+            accentBlobOpacity: 0.24,
+            trailingBlobOpacity: 0.20,
+            topVeilOpacity: 0.20,
+            bottomVeilOpacity: 0.38,
+            blobBlurRatio: 0.036)
     }
 }
 

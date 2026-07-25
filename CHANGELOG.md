@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- The brand-derived gradient palette is calmer and reads as one color. `ReleaseGradientPalette.brand(_:)` used to pair any brand color with fixed `.cyan` and `.mint` (light) or `.purple` and `.cyan` (dark), so the field was three unrelated hues; the supporting tones are now the brand washed toward the platform surface. Since that surface is light in light mode and dark in dark mode, the same wash lifts the palette in one and deepens it in the other.
+- `.animatedGradient` is substantially softer. Light mode had carried the *highest* base tint of either scheme (0.38 against dark's 0.26) under almost no veil (0.04, where `.softGradient` reaches 0.78) — the veil is the surface color painted back over the field, so with it near zero nothing tempered the color. Veils are up and tints, blob opacities, and blur are retuned in both schemes.
+- Not source-breaking, but every caller using a brand-derived gradient will look different. `.softGradient` shares the same palette factory, so its hues change too; its own intensity tuning is untouched. Explicit `palette:` overrides are unaffected.
+
 ### Fixed
 
 - The footer reserved roughly twice the space it used. 2.0.1 masked away the measured footer height on top of the fade band, but `safeAreaBar` already reserves that height — rows stop at the bar's top edge rather than running underneath it — so the mask blanked a second footer's worth of content above the real one. The mask is now just the fade band. On an iPhone that is one to two more feature rows visible at rest, and the footer takes only the height its own content needs.

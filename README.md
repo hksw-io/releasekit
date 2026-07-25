@@ -90,7 +90,9 @@ Built-in options:
 
 Every background spans behind the pinned footer and button area, including `.system`. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
 
-`ReleaseStyle.tint` is the default brand color for `.softGradient` and `.animatedGradient()`. Pass `brand:` when the background should use a different brand color from the controls, or pass a full palette when an app needs exact light and dark tones:
+`ReleaseStyle.tint` is the default brand color for `.softGradient` and `.animatedGradient()`. The supporting tones are that same color washed toward the platform surface, so the field reads as one color family rather than as unrelated hues — and because the surface is light in light mode and dark in dark mode, the same wash lifts the palette in one and deepens it in the other.
+
+Pass `brand:` when the background should use a different brand color from the controls, or pass a full palette when an app needs exact light and dark tones:
 
 ```swift
 let palette = ReleaseGradientPalette(
