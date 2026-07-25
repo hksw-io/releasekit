@@ -23,7 +23,7 @@ domain language `Release...`, for example `ReleaseView`, `ReleaseContent`, and
 ## Installation
 
 ```swift
-.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "2.0.0")
+.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "2.0.1")
 ```
 
 Or in Xcode: **File > Add Package Dependencies** and enter the URL above.
@@ -88,7 +88,7 @@ Built-in options:
 - `.animatedGradient(brand:palette:motion:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, and automatically becomes static when Reduce Motion is enabled.
 - `.custom { context in ... }` — a fully custom SwiftUI background. Use `context.reduceMotion`, `context.brandColor`, and `context.colorScheme` to keep custom backgrounds consistent and accessible.
 
-Every background spans behind the pinned footer and button area, including `.system`. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and relies on the scroll edge effect instead.
+Every background spans behind the pinned footer and button area, including `.system`. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
 
 `ReleaseStyle.tint` is the default brand color for `.softGradient` and `.animatedGradient()`. Pass `brand:` when the background should use a different brand color from the controls, or pass a full palette when an app needs exact light and dark tones:
 
@@ -122,7 +122,7 @@ ReleaseView(content: MyRelease()) {
 
 The built-in presets are `.subtle`, `.standard`, and `.expressive`. Stronger motion increases movement, speed, and gradient contrast. For finer control, pass `ReleaseGradientMotion(strength:)`; values are clamped from `0` to `2`, and `0` keeps the animated-gradient color field static.
 
-ReleaseKit keeps the footer pinned while content scrolls behind it. A measured footer mask fades overflowing content only above the footer; when scrolling reaches the end, visible content is fully opaque again.
+ReleaseKit keeps the footer pinned while content scrolls behind it. Rows are opaque above the footer, fade over a short band, and are erased behind it, so the background carries through unbroken and a footer running to several lines never has content showing through it.
 
 ## Styling
 

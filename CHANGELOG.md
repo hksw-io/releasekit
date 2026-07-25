@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-07-25
+
+### Fixed
+
+- A footer running to several lines — a long `ReleaseNotice` — drew its own text on top of the feature rows behind it. 2.0.0 used the soft scroll edge effect, which fades content rather than erasing it, so anything behind a tall bar stayed partly visible. The scroll view is masked instead: rows are opaque above the footer, fade over a short band, and are gone behind it. The background is still a sibling behind the scroll view, so it shows through unbroken — including the animated gradient, which no bar-local background could match.
+
 ## [2.0.0] - 2026-07-25
 
 Platform idioms and API currency for iOS 26 / macOS 26. The package had platform-aware *measurements* but a single iOS interaction model; this pass splits the parts a Mac user actually touches.
@@ -54,5 +60,6 @@ First tagged release. Everything before this was consumed off the `master` branc
 
 - Replaced the deprecated `ScrollView(_:showsIndicators:)` initializer, and removed a duplicate `scrollIndicators` modifier, an inert `controlSize` under `buttonStyle(.plain)`, and a redundant single-child `ZStack` in the footer overlay.
 
+[2.0.1]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.1
 [2.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.0
 [1.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/1.0.0

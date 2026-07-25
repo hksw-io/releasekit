@@ -36,6 +36,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var featuresVisible = false
     @State private var containerWidth: CGFloat = Tokens.Platform.assumedContainerWidth
+    @State private var footerHeight: CGFloat = 0
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = Tokens.Platform.iconSize
     @ScaledMetric(relativeTo: .body) private var featureIconSize: CGFloat = Tokens.Platform.featureIconSize
@@ -43,6 +44,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @ScaledMetric(relativeTo: .body) private var featureSpacing: CGFloat = Tokens.Platform.featureSpacing
     @ScaledMetric(relativeTo: .body) private var topPadding: CGFloat = Tokens.Platform.topPadding
     @ScaledMetric(relativeTo: .body) private var bottomPadding: CGFloat = Tokens.Platform.bottomPadding
+    @ScaledMetric(relativeTo: .body) private var footerFadeHeight: CGFloat = Tokens.Platform.footerFadeHeight
     @ScaledMetric(relativeTo: .body) private var compactHorizontalPadding: CGFloat = Tokens.Layout
         .compactHorizontalPadding
     @ScaledMetric(relativeTo: .body) private var regularHorizontalPadding: CGFloat = Tokens.Layout
@@ -103,6 +105,21 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             .scrollIndicators(.never, axes: .vertical)
             #endif
             .scrollBounceBehavior(.basedOnSize)
+            // Erase the rows where the footer sits, with a short fade above it.
+            //
+            // Neither system edge effect can do this job here. The hard style occludes but draws a
+            // divider across a surface meant to be continuous; the soft style drops the divider but
+            // only fades, so a tall footer — a notice running to several lines — leaves its own text
+            // sitting on top of the rows behind it.
+            //
+            // Masking the scroll view instead erases those rows outright, and because the background
+            // is a sibling behind it, whatever is back there shows through unbroken. That holds for
+            // the animated gradient too, which no bar-local background could match.
+            .mask {
+                ReleaseFooterMask(
+                    footerHeight: self.footerHeight,
+                    fadeHeight: self.footerFadeHeight)
+            }
             .safeAreaBar(edge: .bottom) {
                 ReleaseFooterSection(
                     content: self.content,
@@ -112,13 +129,15 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                 .frame(maxWidth: Tokens.Layout.contentMaxWidth)
                 .padding(.horizontal, self.horizontalPadding)
                 .frame(maxWidth: .infinity)
+                .onGeometryChange(for: CGFloat.self) { geometry in
+                    geometry.size.height
+                } action: { newHeight in
+                    if self.footerHeight != newHeight {
+                        self.footerHeight = newHeight
+                    }
+                }
             }
-            // After the bar, not before: the effect applies to the edge the bar creates.
-            //
-            // Soft, not hard: the hard style draws a divider across the sheet where content meets
-            // the bar, which reads as a seam on a surface that is meant to be continuous. Soft
-            // fades the rows out instead, and the background carries straight through.
-            .scrollEdgeEffectStyle(.soft, for: .bottom)
+            .scrollEdgeEffectHidden(true, for: .bottom)
             .onGeometryChange(for: CGFloat.self) { geometry in
                 geometry.size.width
             } action: { newWidth in
@@ -180,6 +199,40 @@ enum LayoutMetrics {
         breakpoint: CGFloat
     ) -> CGFloat {
         width <= breakpoint ? compact : regular
+    }
+}
+
+/// Masks the scroll view so rows are opaque above the footer, fade over a short band, and are gone
+/// behind it.
+///
+/// The opaque section takes the remaining height rather than a measured one, so only the footer has
+/// to be measured — the container does not.
+struct ReleaseFooterMask: View {
+    let footerHeight: CGFloat
+    let fadeHeight: CGFloat
+
+    /// Heights arrive from `onGeometryChange`, which reports zero before the first measured pass and
+    /// can report slightly negative values mid-resize. Either would flip a `frame(height:)`.
+    static func clamped(_ height: CGFloat) -> CGFloat {
+        max(0, height)
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(.black)
+                .frame(maxHeight: .infinity)
+
+            LinearGradient(
+                colors: [.black, .black.opacity(0)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: Self.clamped(self.fadeHeight))
+
+            Color.clear
+                .frame(height: Self.clamped(self.footerHeight))
+        }
     }
 }
 
