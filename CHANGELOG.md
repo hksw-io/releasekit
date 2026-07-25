@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Fixed
 
 - The footer reserved roughly twice the space it used. 2.0.1 masked away the measured footer height on top of the fade band, but `safeAreaBar` already reserves that height — rows stop at the bar's top edge rather than running underneath it — so the mask blanked a second footer's worth of content above the real one. The mask is now just the fade band. On an iPhone that is one to two more feature rows visible at rest, and the footer takes only the height its own content needs.
+- The macOS overlay scroller faded out along with the rows. A mask applies to everything a scroll view draws, its indicator included. A trailing strip is now left out of the fade — narrower than the sheet's horizontal padding, so it spares the scroller without ever covering content.
 
 ## [2.0.1] - 2026-07-25
 

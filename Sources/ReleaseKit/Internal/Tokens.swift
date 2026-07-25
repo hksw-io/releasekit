@@ -74,8 +74,11 @@ enum Tokens {
         /// picks the padding the measured pass will confirm. A Mac sheet is never narrower than
         /// `sheetMinWidth`, which is past the compact breakpoint.
         static let assumedContainerWidth: CGFloat = sheetIdealWidth
-        /// How far above the footer the rows fade out before they are masked away entirely.
+        /// How far above the footer the rows fade out.
         static let footerFadeHeight: CGFloat = 20
+        /// Kept out of the fade so the overlay scroller does not fade with the rows. Narrower than
+        /// `Layout.regularHorizontalPadding`, so it only ever covers padding, never content.
+        static let scrollerGutter: CGFloat = 16
         #else
         static let iconSize: CGFloat = 100
         static let featureIconSize: CGFloat = 35
@@ -86,8 +89,10 @@ enum Tokens {
         /// Phone width, which is what a sheet is on the overwhelming majority of iOS presentations.
         /// iPad still corrects itself on the measured pass.
         static let assumedContainerWidth: CGFloat = 0
-        /// How far above the footer the rows fade out before they are masked away entirely.
+        /// How far above the footer the rows fade out.
         static let footerFadeHeight: CGFloat = 28
+        /// iOS hides the scroll indicator, so there is nothing to spare from the fade.
+        static let scrollerGutter: CGFloat = 0
         #endif
     }
 

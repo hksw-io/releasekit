@@ -228,7 +228,20 @@ struct ReleaseViewBuildTest {
         #expect(ReleaseFooterMask.clamped(-1) == 0)
         #expect(ReleaseFooterMask.clamped(-240) == 0)
 
-        _ = ReleaseFooterMask(fadeHeight: -5)
+        _ = ReleaseFooterMask(fadeHeight: -5, scrollerGutter: -5)
+    }
+
+    /// The mask covers everything the scroll view draws, indicator included. The spared strip has to
+    /// stay narrower than the horizontal padding so it never sits over content.
+    @Test
+    func scrollerGutterStaysWithinHorizontalPadding() {
+        #expect(Tokens.Platform.scrollerGutter < Tokens.Layout.regularHorizontalPadding)
+
+        #if os(macOS)
+        #expect(Tokens.Platform.scrollerGutter > 0)
+        #else
+        #expect(Tokens.Platform.scrollerGutter == 0)
+        #endif
     }
 
     /// The button must clear the sheet edge rather than hug it, without floating so high that the

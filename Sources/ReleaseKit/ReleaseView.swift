@@ -116,7 +116,9 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             // the real one. Because the background is a sibling behind the scroll view, it shows
             // through the band unbroken, including the animated gradient.
             .mask {
-                ReleaseFooterMask(fadeHeight: self.footerFadeHeight)
+                ReleaseFooterMask(
+                    fadeHeight: self.footerFadeHeight,
+                    scrollerGutter: Tokens.Platform.scrollerGutter)
             }
             .safeAreaBar(edge: .bottom) {
                 ReleaseFooterSection(
@@ -193,32 +195,44 @@ enum LayoutMetrics {
     }
 }
 
-/// Masks the scroll view so rows are opaque above the footer, fade over a short band, and are gone
-/// behind it.
+/// Fades the scroll view's rows out over a short band where they meet the footer.
 ///
-/// The opaque section takes the remaining height rather than a measured one, so only the footer has
-/// to be measured — the container does not.
+/// The opaque section takes the remaining height rather than a measured one, so nothing has to be
+/// measured to place the band.
+///
+/// A mask applies to everything the scroll view draws, including its indicator, so on macOS the
+/// scroller faded out along with the rows. A trailing strip is therefore left opaque. It is narrower
+/// than the sheet's horizontal padding, so it spares the scroller without ever holding content.
 struct ReleaseFooterMask: View {
     let fadeHeight: CGFloat
+    let scrollerGutter: CGFloat
 
-    /// Heights arrive from `onGeometryChange`, which reports zero before the first measured pass and
-    /// can report slightly negative values mid-resize. Either would flip a `frame(height:)`.
-    static func clamped(_ height: CGFloat) -> CGFloat {
-        max(0, height)
+    /// The fade height is scaled for Dynamic Type, which can hand back a negative value; that would
+    /// flip a `frame(height:)`.
+    static func clamped(_ length: CGFloat) -> CGFloat {
+        max(0, length)
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Rectangle()
-                .fill(.black)
-                .frame(maxHeight: .infinity)
+        HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                Rectangle()
+                    .fill(.black)
+                    .frame(maxHeight: .infinity)
 
-            LinearGradient(
-                colors: [.black, .black.opacity(0)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: Self.clamped(self.fadeHeight))
+                LinearGradient(
+                    colors: [.black, .black.opacity(0)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: Self.clamped(self.fadeHeight))
+            }
+
+            if self.scrollerGutter > 0 {
+                Rectangle()
+                    .fill(.black)
+                    .frame(width: Self.clamped(self.scrollerGutter))
+            }
         }
     }
 }
