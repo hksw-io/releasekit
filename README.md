@@ -10,9 +10,32 @@ domain language `Release...`, for example `ReleaseView`, `ReleaseContent`, and
 
 ## Preview
 
+The default `.system` background on iPhone. Rows fade out where they meet the pinned footer, and the button spans it:
+
 <p>
-  <img src="Docs/Media/releasekit-animated-gradient.png" alt="ReleaseKit with an animated gradient background, long localized content, footer fade, and pinned action button." width="360">
-  <img src="Docs/Media/releasekit-system-long-content.png" alt="ReleaseKit with the system background, long localized content, footer fade, and pinned action button." width="360">
+  <img src="Docs/Media/releasekit-iphone-light.jpg" alt="The release sheet on iPhone in light mode: app icon, What's New title, five feature rows, and a pinned footer with a notice above a full-width Continue button." width="250">
+  <img src="Docs/Media/releasekit-iphone-dark.jpg" alt="The same iPhone sheet in dark mode, with the same layout on a dark surface." width="250">
+</p>
+
+`.animatedGradient()`, taking its brand color from `ReleaseStyle.tint`. It adapts its tones per color scheme and holds still under Reduce Motion:
+
+<p>
+  <img src="Docs/Media/releasekit-iphone-gradient-light.jpg" alt="The iPhone sheet in light mode with the animated gradient background, tinted indigo." width="250">
+  <img src="Docs/Media/releasekit-iphone-gradient-dark.jpg" alt="The iPhone sheet in dark mode with the animated gradient background, tinted indigo." width="250">
+</p>
+
+On iPad the same sheet presents as a centered card, sized to the content rather than the screen:
+
+<p>
+  <img src="Docs/Media/releasekit-ipad-gradient.jpg" alt="The release sheet on iPad in light mode with the animated gradient background, presented as a centered card." width="300">
+  <img src="Docs/Media/releasekit-ipad-dark.jpg" alt="The release sheet on iPad in dark mode with the system background, presented as a centered card." width="300">
+</p>
+
+On macOS it is a resizable window with the platform's overlay scroller, and Escape runs `onDismiss`:
+
+<p>
+  <img src="Docs/Media/releasekit-mac-gradient.jpg" alt="The release sheet on macOS in light mode with the animated gradient background, shown in a window with an overlay scroller." width="300">
+  <img src="Docs/Media/releasekit-mac-dark.jpg" alt="The release sheet on macOS in dark mode with the system background, shown in a window with an overlay scroller." width="300">
 </p>
 
 ## Requirements
