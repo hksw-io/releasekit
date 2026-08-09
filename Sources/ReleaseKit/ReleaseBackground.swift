@@ -30,6 +30,12 @@ public struct ReleaseBackgroundContext: Equatable, Sendable {
         self.brandColor = brandColor
         self.colorScheme = colorScheme
     }
+
+    /// The tones a gradient background should draw with: an explicit palette wins, then an explicit
+    /// brand color, then the style tint, then blue.
+    func tones(brand: Color?, palette: ReleaseGradientPalette?) -> ReleaseGradientPalette.Tones {
+        (palette ?? .brand(brand ?? self.brandColor ?? .blue)).tones(for: self.colorScheme)
+    }
 }
 
 /// Exact light and dark tones for the gradient backgrounds.
@@ -215,18 +221,12 @@ extension ReleaseBackground {
         case let .softGradient(brand, palette):
             AnyView(
                 ReleaseSoftGradientBackground(
-                    tones: ReleaseGradientPaletteResolver.tones(
-                        brand: brand,
-                        palette: palette,
-                        context: context),
+                    tones: context.tones(brand: brand, palette: palette),
                     colorScheme: context.colorScheme))
         case let .animatedGradient(brand, palette):
             AnyView(
                 ReleaseAnimatedGradientBackground(
-                    tones: ReleaseGradientPaletteResolver.tones(
-                        brand: brand,
-                        palette: palette,
-                        context: context),
+                    tones: context.tones(brand: brand, palette: palette),
                     colorScheme: context.colorScheme,
                     reduceMotion: context.reduceMotion))
         case let .custom(background):
@@ -415,17 +415,6 @@ private enum ReleaseAnimatedGradientRenderer {
                 center: centerPoint,
                 startRadius: 0,
                 endRadius: radius))
-    }
-}
-
-private enum ReleaseGradientPaletteResolver {
-    static func tones(
-        brand: Color?,
-        palette: ReleaseGradientPalette?,
-        context: ReleaseBackgroundContext
-    ) -> ReleaseGradientPalette.Tones {
-        let resolvedPalette = palette ?? .brand(brand ?? context.brandColor ?? .blue)
-        return resolvedPalette.tones(for: context.colorScheme)
     }
 }
 
