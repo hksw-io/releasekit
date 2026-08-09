@@ -84,9 +84,8 @@ Built-in options:
 
 - `.system` — the default platform background.
 - `.softGradient` / `.softGradient(brand:palette:)` — a restrained brand-derived background tuned for readable content.
-- `.linearGradient(colors:startPoint:endPoint:)` — app-provided colors with the library-managed footer treatment.
 - `.animatedGradient(brand:palette:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, and automatically becomes static when Reduce Motion is enabled.
-- `.custom { context in ... }` — a fully custom SwiftUI background. Use `context.reduceMotion`, `context.brandColor`, and `context.colorScheme` to keep custom backgrounds consistent and accessible.
+- `.custom { context in ... }` — a fully custom SwiftUI background, including a plain `LinearGradient` of your own colors. Use `context.reduceMotion`, `context.brandColor`, and `context.colorScheme` to keep custom backgrounds consistent and accessible.
 
 Every background spans behind the pinned footer and button area, including `.system`. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
 

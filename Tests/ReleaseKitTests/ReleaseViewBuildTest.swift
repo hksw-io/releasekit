@@ -35,10 +35,6 @@ struct ReleaseViewBuildTest {
             .system,
             .softGradient,
             .softGradient(brand: .orange),
-            .linearGradient(
-                colors: [.blue.opacity(0.18), .mint.opacity(0.12), .clear],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing),
             .animatedGradient(),
             .animatedGradient(palette: palette),
             .custom { context in

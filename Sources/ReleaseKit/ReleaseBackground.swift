@@ -130,7 +130,6 @@ public struct ReleaseBackground: Sendable {
     enum Storage: Sendable {
         case system
         case softGradient(brand: Color?, palette: ReleaseGradientPalette?)
-        case linearGradient(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint)
         case animatedGradient(brand: Color?, palette: ReleaseGradientPalette?)
         case custom(@Sendable @MainActor (ReleaseBackgroundContext) -> AnyView)
     }
@@ -158,22 +157,6 @@ public struct ReleaseBackground: Sendable {
         palette: ReleaseGradientPalette? = nil
     ) -> Self {
         Self(storage: .softGradient(brand: brand, palette: palette))
-    }
-
-    /// A static linear gradient from app-provided colors, with the library's footer treatment.
-    ///
-    /// - Parameters:
-    ///   - colors: Gradient stops. An empty array falls back to the platform surface color, and a
-    ///     single color renders flat.
-    ///   - startPoint: Where the gradient begins.
-    ///   - endPoint: Where the gradient ends.
-    /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
-    public static func linearGradient(
-        colors: [Color],
-        startPoint: UnitPoint = .topLeading,
-        endPoint: UnitPoint = .bottomTrailing
-    ) -> Self {
-        Self(storage: .linearGradient(colors: colors, startPoint: startPoint, endPoint: endPoint))
     }
 
     /// A slowly drifting full-surface gradient, rendered in a `Canvas`.
@@ -237,12 +220,6 @@ extension ReleaseBackground {
                         palette: palette,
                         context: context),
                     colorScheme: context.colorScheme))
-        case let .linearGradient(colors, startPoint, endPoint):
-            AnyView(
-                ReleaseLinearGradientBackground(
-                    colors: colors,
-                    startPoint: startPoint,
-                    endPoint: endPoint))
         case let .animatedGradient(brand, palette):
             AnyView(
                 ReleaseAnimatedGradientBackground(
@@ -295,19 +272,6 @@ private struct ReleaseSoftGradientBackground: View {
                 startPoint: .top,
                 endPoint: .bottom)
         }
-    }
-}
-
-private struct ReleaseLinearGradientBackground: View {
-    let colors: [Color]
-    let startPoint: UnitPoint
-    let endPoint: UnitPoint
-
-    var body: some View {
-        LinearGradient(
-            colors: ReleaseGradientColorNormalizer.colors(self.colors),
-            startPoint: self.startPoint,
-            endPoint: self.endPoint)
     }
 }
 
@@ -550,19 +514,6 @@ enum ReleaseAnimatedGradientMotion {
 
     private static func point(_ x: Double, _ y: Double) -> CGPoint {
         CGPoint(x: min(1, max(0, x)), y: min(1, max(0, y)))
-    }
-}
-
-enum ReleaseGradientColorNormalizer {
-    static func colors(_ colors: [Color]) -> [Color] {
-        switch colors.count {
-        case 0:
-            [Tokens.background, Tokens.background]
-        case 1:
-            [colors[0], colors[0]]
-        default:
-            colors
-        }
     }
 }
 #endif
