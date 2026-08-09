@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// Read these rather than querying the environment directly, so a custom background reacts to the
 /// same inputs the built-in ones do.
-public struct ReleaseBackgroundContext: Equatable, Sendable {
+public struct ReleaseBackgroundContext: Sendable {
     /// Whether Reduce Motion is enabled. Custom backgrounds must not animate when this is `true`.
     public let reduceMotion: Bool
     /// The `tint` from the applied ``ReleaseStyle``, or `nil` when the style sets no tint.
@@ -79,13 +79,15 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
 
     /// Creates a palette.
     ///
+    /// Both schemes are required: a saturated palette that reuses its light tones in dark mode does
+    /// not stay readable, so there is no default worth offering.
+    ///
     /// - Parameters:
     ///   - light: Tones for light mode.
-    ///   - dark: Tones for dark mode. Passing `nil` reuses `light` in both schemes, which is rarely
-    ///     what you want for a saturated palette — dark mode needs its own tones to stay readable.
-    public init(light: Tones, dark: Tones? = nil) {
+    ///   - dark: Tones for dark mode.
+    public init(light: Tones, dark: Tones) {
         self.light = light
-        self.dark = dark ?? light
+        self.dark = dark
     }
 
     /// Derives a full light and dark palette from a single brand color.
