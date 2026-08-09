@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-08-09
+
+An over-engineering audit and the cuts it found. The sheet, the gradients, and the tracker look and behave as they did in 2.0.2 — the breaks are all in API surface that only ever had one setting worth using. Source shrank from 2262 to 1707 lines.
+
+### Removed
+
+- **Breaking:** `ReleaseGradientMotion`, and the `motion:` parameter on `.animatedGradient(brand:palette:motion:)`. One `Double` fanned out into five derived scale properties and three presets so a single call site could nudge four opacity multipliers, a blur ratio, and a cycle duration. The `.standard` products are baked in — opacities rounded to three decimals — so the default gradient is visually unchanged; `.subtle` and `.expressive` have no replacement.
+- **Breaking:** `.linearGradient(colors:startPoint:endPoint:)`. `.custom { _ in LinearGradient(colors:startPoint:endPoint:) }` draws the same picture and gets the same footer treatment, since every background is a sibling behind the scroll view either way.
+- **Breaking:** the `dark` default on `ReleaseGradientPalette(light:dark:)`. It reused the light tones in both schemes, which the doc comment itself argued against. `brand(_:)` is still the way to derive both schemes from one color.
+- **Breaking:** `Equatable` on `ReleaseBackgroundContext`. Nothing compared two contexts.
+
+### Changed
+
+- Horizontal padding reads `horizontalSizeClass` instead of measuring the sheet through `onGeometryChange` into a `@State`. The two disagree only on a landscape phone, where the content is capped at `contentMaxWidth` and centred — so the padding is not on screen to see. macOS is never compact and skips the question.
+- Internal structure: the two gradient tuning tables, the palette resolver, the background and feature-list wrapper views, the footer mask's clamp helper, the optional-tint modifier, the style's foreground-style helper, and the `Spacing`/`Radius` token enums are all gone, inlined into their single call sites. `View.tint(_:)` already accepts an optional, and the negative-length guard on the footer mask stays — Dynamic Type really can scale a fade height below zero.
+- Tests: fifteen construction cases that asserted nothing beyond compilation collapsed into one, and the tracker's duplicate coverage folded together. 47 tests to 25, with no behavior left uncovered.
+
 ## [2.0.2] - 2026-07-25
 
 ### Changed
