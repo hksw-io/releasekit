@@ -191,14 +191,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
 /// scroller faded out along with the rows. A trailing strip is therefore left opaque. It is narrower
 /// than the sheet's horizontal padding, so it spares the scroller without ever holding content.
 struct ReleaseFooterMask: View {
+    /// Scaled for Dynamic Type, which can hand back a negative value — hence the `max(0,)` below,
+    /// since a negative length flips a `frame`.
     let fadeHeight: CGFloat
     let scrollerGutter: CGFloat
-
-    /// The fade height is scaled for Dynamic Type, which can hand back a negative value; that would
-    /// flip a `frame(height:)`.
-    static func clamped(_ length: CGFloat) -> CGFloat {
-        max(0, length)
-    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -212,13 +208,13 @@ struct ReleaseFooterMask: View {
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: Self.clamped(self.fadeHeight))
+                .frame(height: max(0, self.fadeHeight))
             }
 
             if self.scrollerGutter > 0 {
                 Rectangle()
                     .fill(.black)
-                    .frame(width: Self.clamped(self.scrollerGutter))
+                    .frame(width: max(0, self.scrollerGutter))
             }
         }
     }

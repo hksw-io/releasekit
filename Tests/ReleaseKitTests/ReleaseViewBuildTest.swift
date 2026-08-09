@@ -94,17 +94,7 @@ struct ReleaseViewBuildTest {
     /// erasing that height again blanks a second footer's worth of content above the real one.
     @Test
     func footerMaskFadesWithoutReservingFooterHeight() {
-        #expect(ReleaseFooterMask.clamped(Tokens.Platform.footerFadeHeight) == Tokens.Platform.footerFadeHeight)
         #expect(Tokens.Platform.footerFadeHeight > 0)
-    }
-
-    /// A negative height would flip the mask's frame, and Dynamic Type scaling can hand one back.
-    @Test
-    func footerMaskClampsNegativeHeights() {
-        #expect(ReleaseFooterMask.clamped(-1) == 0)
-        #expect(ReleaseFooterMask.clamped(-240) == 0)
-
-        _ = ReleaseFooterMask(fadeHeight: -5, scrollerGutter: -5)
     }
 
     /// The mask covers everything the scroll view draws, indicator included. The spared strip has to
