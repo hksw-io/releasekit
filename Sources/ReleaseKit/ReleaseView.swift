@@ -145,7 +145,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         }
         .clipped()
         .interactiveDismissDisabled()
-        .releaseTint(self.style.tint)
+        .tint(self.style.tint)
         #if os(macOS)
         .frame(
             minWidth: Tokens.Platform.sheetMinWidth,
@@ -410,15 +410,6 @@ private struct ReleaseDismissButton: View {
 }
 
 private extension View {
-    @ViewBuilder
-    func releaseTint(_ color: Color?) -> some View {
-        if let color {
-            self.tint(color)
-        } else {
-            self
-        }
-    }
-
     @ViewBuilder
     func releaseOptionalForegroundStyle(_ color: Color?) -> some View {
         if let color {
