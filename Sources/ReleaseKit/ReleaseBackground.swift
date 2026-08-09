@@ -240,34 +240,35 @@ private struct ReleaseSoftGradientBackground: View {
     let colorScheme: ColorScheme
 
     var body: some View {
-        let tuning = ReleaseGradientVisualTuning.soft(colorScheme: self.colorScheme)
+        let isDark = self.colorScheme == .dark
+        let baseTint = isDark ? 0.20 : 0.12
 
         ZStack {
             self.tones.base
 
             LinearGradient(
                 colors: [
-                    self.tones.primary.opacity(tuning.baseTintOpacity),
-                    self.tones.secondary.opacity(tuning.baseTintOpacity * 0.7),
-                    self.tones.accent.opacity(tuning.baseTintOpacity * 0.6),
+                    self.tones.primary.opacity(baseTint),
+                    self.tones.secondary.opacity(baseTint * 0.7),
+                    self.tones.accent.opacity(baseTint * 0.6),
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing)
 
             LinearGradient(
                 colors: [
-                    self.tones.primary.opacity(tuning.primaryOpacity),
-                    self.tones.secondary.opacity(tuning.secondaryOpacity),
-                    self.tones.accent.opacity(tuning.accentOpacity),
-                    self.tones.base.opacity(tuning.baseFadeOpacity),
+                    self.tones.primary.opacity(isDark ? 0.24 : 0.18),
+                    self.tones.secondary.opacity(isDark ? 0.18 : 0.12),
+                    self.tones.accent.opacity(isDark ? 0.16 : 0.10),
+                    self.tones.base.opacity(isDark ? 0.54 : 0.62),
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing)
 
             LinearGradient(
                 colors: [
-                    self.tones.base.opacity(tuning.topVeilOpacity),
-                    self.tones.base.opacity(tuning.bottomVeilOpacity),
+                    self.tones.base.opacity(isDark ? 0.08 : 0.04),
+                    self.tones.base.opacity(isDark ? 0.42 : 0.78),
                 ],
                 startPoint: .top,
                 endPoint: .bottom)
@@ -293,7 +294,7 @@ private struct ReleaseAnimatedGradientBackground: View {
                 let centers = ReleaseAnimatedGradientMotion.centers(
                     phase: phase,
                     reduceMotion: self.reduceMotion)
-                let tuning = ReleaseGradientVisualTuning.animated(colorScheme: self.colorScheme)
+                let isDark = self.colorScheme == .dark
 
                 Canvas(
                     opaque: true,
@@ -304,7 +305,7 @@ private struct ReleaseAnimatedGradientBackground: View {
                         context: &context,
                         size: size,
                         tones: self.tones,
-                        tuning: tuning,
+                        isDark: isDark,
                         centers: centers)
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
@@ -314,15 +315,20 @@ private struct ReleaseAnimatedGradientBackground: View {
 }
 
 private enum ReleaseAnimatedGradientRenderer {
+    /// The veil is the surface color painted back over the field. It is what keeps the gradient
+    /// behind the content rather than competing with it, and light mode previously had almost none
+    /// — a 0.38 base tint under a 0.04 veil, where the soft gradient reaches 0.78. That inversion
+    /// is why the animated background read heavy in light mode and calm in dark.
     static func draw(
         context: inout GraphicsContext,
         size: CGSize,
         tones: ReleaseGradientPalette.Tones,
-        tuning: ReleaseAnimatedGradientTuning,
+        isDark: Bool,
         centers: [CGPoint]
     ) {
         let rect = CGRect(origin: .zero, size: size)
         let baseSize = max(size.width, size.height)
+        let baseTint = isDark ? 0.145 : 0.165
 
         context.fill(Path(rect), with: .color(tones.base))
 
@@ -330,23 +336,23 @@ private enum ReleaseAnimatedGradientRenderer {
             Path(rect),
             with: .linearGradient(
                 Gradient(colors: [
-                    tones.primary.opacity(tuning.baseTintOpacity),
-                    tones.secondary.opacity(tuning.baseTintOpacity * 0.76),
-                    tones.accent.opacity(tuning.baseTintOpacity * 0.68),
-                    tones.primary.opacity(tuning.baseTintOpacity * 0.58),
+                    tones.primary.opacity(baseTint),
+                    tones.secondary.opacity(baseTint * 0.76),
+                    tones.accent.opacity(baseTint * 0.68),
+                    tones.primary.opacity(baseTint * 0.58),
                 ]),
                 startPoint: .zero,
                 endPoint: CGPoint(x: size.width, y: size.height)))
 
         var blobContext = context
-        blobContext.addFilter(.blur(radius: baseSize * tuning.blobBlurRatio))
+        blobContext.addFilter(.blur(radius: baseSize * 0.035))
         blobContext.drawLayer { layer in
             self.drawBlob(
                 context: &layer,
                 canvasRect: rect,
                 size: size,
                 color: tones.primary,
-                opacity: tuning.primaryBlobOpacity,
+                opacity: 0.324,
                 center: centers[0],
                 radius: baseSize * 0.92)
             self.drawBlob(
@@ -354,7 +360,7 @@ private enum ReleaseAnimatedGradientRenderer {
                 canvasRect: rect,
                 size: size,
                 color: tones.secondary,
-                opacity: tuning.secondaryBlobOpacity,
+                opacity: isDark ? 0.259 : 0.281,
                 center: centers[1],
                 radius: baseSize * 1.00)
             self.drawBlob(
@@ -362,7 +368,7 @@ private enum ReleaseAnimatedGradientRenderer {
                 canvasRect: rect,
                 size: size,
                 color: tones.accent,
-                opacity: tuning.accentBlobOpacity,
+                opacity: isDark ? 0.238 : 0.259,
                 center: centers[2],
                 radius: baseSize * 0.88)
             self.drawBlob(
@@ -370,7 +376,7 @@ private enum ReleaseAnimatedGradientRenderer {
                 canvasRect: rect,
                 size: size,
                 color: tones.primary,
-                opacity: tuning.trailingBlobOpacity,
+                opacity: isDark ? 0.194 : 0.216,
                 center: centers[3],
                 radius: baseSize * 1.08)
         }
@@ -379,8 +385,8 @@ private enum ReleaseAnimatedGradientRenderer {
             Path(rect),
             with: .linearGradient(
                 Gradient(colors: [
-                    tones.base.opacity(tuning.topVeilOpacity),
-                    tones.base.opacity(tuning.bottomVeilOpacity),
+                    tones.base.opacity(isDark ? 0.30 : 0.20),
+                    tones.base.opacity(isDark ? 0.55 : 0.38),
                 ]),
                 startPoint: CGPoint(x: size.width * 0.5, y: 0),
                 endPoint: CGPoint(x: size.width * 0.5, y: size.height)))
@@ -420,79 +426,6 @@ private enum ReleaseGradientPaletteResolver {
     ) -> ReleaseGradientPalette.Tones {
         let resolvedPalette = palette ?? .brand(brand ?? context.brandColor ?? .blue)
         return resolvedPalette.tones(for: context.colorScheme)
-    }
-}
-
-private struct ReleaseSoftGradientTuning {
-    let baseTintOpacity: Double
-    let primaryOpacity: Double
-    let secondaryOpacity: Double
-    let accentOpacity: Double
-    let baseFadeOpacity: Double
-    let topVeilOpacity: Double
-    let bottomVeilOpacity: Double
-}
-
-private struct ReleaseAnimatedGradientTuning {
-    let baseTintOpacity: Double
-    let primaryBlobOpacity: Double
-    let secondaryBlobOpacity: Double
-    let accentBlobOpacity: Double
-    let trailingBlobOpacity: Double
-    let topVeilOpacity: Double
-    let bottomVeilOpacity: Double
-    let blobBlurRatio: CGFloat
-}
-
-private enum ReleaseGradientVisualTuning {
-    static func soft(colorScheme: ColorScheme) -> ReleaseSoftGradientTuning {
-        if colorScheme == .dark {
-            return ReleaseSoftGradientTuning(
-                baseTintOpacity: 0.20,
-                primaryOpacity: 0.24,
-                secondaryOpacity: 0.18,
-                accentOpacity: 0.16,
-                baseFadeOpacity: 0.54,
-                topVeilOpacity: 0.08,
-                bottomVeilOpacity: 0.42)
-        }
-
-        return ReleaseSoftGradientTuning(
-            baseTintOpacity: 0.12,
-            primaryOpacity: 0.18,
-            secondaryOpacity: 0.12,
-            accentOpacity: 0.10,
-            baseFadeOpacity: 0.62,
-            topVeilOpacity: 0.04,
-            bottomVeilOpacity: 0.78)
-    }
-
-    /// The veil is the surface color painted back over the field. It is what keeps the gradient
-    /// behind the content rather than competing with it, and light mode previously had almost none
-    /// — a 0.38 base tint under a 0.04 veil, where `soft` reaches 0.78. That inversion is why the
-    /// animated background read heavy in light mode and calm in dark.
-    static func animated(colorScheme: ColorScheme) -> ReleaseAnimatedGradientTuning {
-        if colorScheme == .dark {
-            return ReleaseAnimatedGradientTuning(
-                baseTintOpacity: 0.145,
-                primaryBlobOpacity: 0.324,
-                secondaryBlobOpacity: 0.259,
-                accentBlobOpacity: 0.238,
-                trailingBlobOpacity: 0.194,
-                topVeilOpacity: 0.30,
-                bottomVeilOpacity: 0.55,
-                blobBlurRatio: 0.035)
-        }
-
-        return ReleaseAnimatedGradientTuning(
-            baseTintOpacity: 0.165,
-            primaryBlobOpacity: 0.324,
-            secondaryBlobOpacity: 0.281,
-            accentBlobOpacity: 0.259,
-            trailingBlobOpacity: 0.216,
-            topVeilOpacity: 0.20,
-            bottomVeilOpacity: 0.38,
-            blobBlurRatio: 0.035)
     }
 }
 
