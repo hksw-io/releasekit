@@ -66,23 +66,15 @@ public struct ReleaseStyle: Equatable, Sendable {
 
 extension ReleaseStyle {
     var featureIconForegroundStyle: AnyShapeStyle {
-        Self.foregroundStyle(for: self.featureIconColor ?? self.tint, fallback: AnyShapeStyle(.tint))
+        (self.featureIconColor ?? self.tint).map(AnyShapeStyle.init) ?? AnyShapeStyle(.tint)
     }
 
     var featureDescriptionForegroundStyle: AnyShapeStyle {
-        Self.foregroundStyle(for: self.featureDescriptionColor, fallback: AnyShapeStyle(.secondary))
+        self.featureDescriptionColor.map(AnyShapeStyle.init) ?? AnyShapeStyle(.secondary)
     }
 
     var noticeForegroundStyle: AnyShapeStyle {
-        Self.foregroundStyle(for: self.noticeColor, fallback: AnyShapeStyle(.secondary))
-    }
-
-    private static func foregroundStyle(for color: Color?, fallback: AnyShapeStyle) -> AnyShapeStyle {
-        guard let color else {
-            return fallback
-        }
-
-        return AnyShapeStyle(color)
+        self.noticeColor.map(AnyShapeStyle.init) ?? AnyShapeStyle(.secondary)
     }
 }
 #endif
