@@ -113,54 +113,6 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
     }
 }
 
-/// How much the animated gradient moves, and how much contrast it carries.
-///
-/// Higher strength increases travel, speed, and color contrast together. Reduce Motion overrides
-/// this entirely — the gradient goes static regardless of strength.
-public struct ReleaseGradientMotion: Equatable, Sendable {
-    /// Motion intensity. Clamped to `0...2` when used; `0` holds the color field still.
-    public var strength: Double
-
-    /// Calm movement, for content-heavy sheets.
-    public static let subtle = Self(strength: 0.7)
-    /// The default balance of movement and contrast.
-    public static let standard = Self(strength: 1.2)
-    /// Pronounced movement and contrast, for a launch or a major release.
-    public static let expressive = Self(strength: 1.6)
-
-    /// Creates a motion setting.
-    ///
-    /// - Parameter strength: Motion intensity, clamped to `0...2` when applied. Pass `0` to keep
-    ///   the gradient's color field static while still rendering it.
-    public init(strength: Double = 1.2) {
-        self.strength = strength
-    }
-
-    var clampedStrength: Double {
-        min(2, max(0, self.strength))
-    }
-
-    var speedScale: Double {
-        max(0.35, 0.65 + (self.clampedStrength * 0.35))
-    }
-
-    var travelScale: Double {
-        self.clampedStrength
-    }
-
-    var baseTintScale: Double {
-        0.84 + (self.clampedStrength * 0.16)
-    }
-
-    var blobOpacityScale: Double {
-        0.78 + (self.clampedStrength * 0.25)
-    }
-
-    var blobBlurScale: Double {
-        max(0.90, 1.08 - (self.clampedStrength * 0.09))
-    }
-}
-
 /// The surface drawn behind the release sheet's content.
 ///
 /// Apply one with ``ReleaseView/releaseBackground(_:)``. Every option spans the full sheet,
@@ -179,7 +131,7 @@ public struct ReleaseBackground: Sendable {
         case system
         case softGradient(brand: Color?, palette: ReleaseGradientPalette?)
         case linearGradient(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint)
-        case animatedGradient(brand: Color?, palette: ReleaseGradientPalette?, motion: ReleaseGradientMotion)
+        case animatedGradient(brand: Color?, palette: ReleaseGradientPalette?)
         case custom(@Sendable @MainActor (ReleaseBackgroundContext) -> AnyView)
     }
 
@@ -233,14 +185,12 @@ public struct ReleaseBackground: Sendable {
     ///   - brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``, then to
     ///     blue.
     ///   - palette: Exact light and dark tones. Takes precedence over `brand` when both are given.
-    ///   - motion: How much the gradient moves. Defaults to ``ReleaseGradientMotion/standard``.
     /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
     public static func animatedGradient(
         brand: Color? = nil,
-        palette: ReleaseGradientPalette? = nil,
-        motion: ReleaseGradientMotion = .standard
+        palette: ReleaseGradientPalette? = nil
     ) -> Self {
-        Self(storage: .animatedGradient(brand: brand, palette: palette, motion: motion))
+        Self(storage: .animatedGradient(brand: brand, palette: palette))
     }
 
     /// A fully custom SwiftUI background.
@@ -293,7 +243,7 @@ extension ReleaseBackground {
                     colors: colors,
                     startPoint: startPoint,
                     endPoint: endPoint))
-        case let .animatedGradient(brand, palette, motion):
+        case let .animatedGradient(brand, palette):
             AnyView(
                 ReleaseAnimatedGradientBackground(
                     tones: ReleaseGradientPaletteResolver.tones(
@@ -301,7 +251,6 @@ extension ReleaseBackground {
                         palette: palette,
                         context: context),
                     colorScheme: context.colorScheme,
-                    motion: motion,
                     reduceMotion: context.reduceMotion))
         case let .custom(background):
             background(context)
@@ -365,29 +314,22 @@ private struct ReleaseLinearGradientBackground: View {
 private struct ReleaseAnimatedGradientBackground: View {
     let tones: ReleaseGradientPalette.Tones
     let colorScheme: ColorScheme
-    let motion: ReleaseGradientMotion
     let reduceMotion: Bool
 
-    private static let baseCycleDuration: TimeInterval = 10
+    private static let cycleDuration: TimeInterval = 9.35
 
     var body: some View {
-        let isPaused = self.reduceMotion || self.motion.clampedStrength == 0
-
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: isPaused)) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: self.reduceMotion)) { timeline in
             let phase =
-                isPaused
+                self.reduceMotion
                 ? 0
-                : timeline.date.timeIntervalSinceReferenceDate / (Self.baseCycleDuration / self.motion.speedScale)
+                : timeline.date.timeIntervalSinceReferenceDate / Self.cycleDuration
 
             GeometryReader { geometry in
                 let centers = ReleaseAnimatedGradientMotion.centers(
                     phase: phase,
-                    reduceMotion: self.reduceMotion,
-                    motion: self.motion)
-                let tuning =
-                    ReleaseGradientVisualTuning
-                    .animated(colorScheme: self.colorScheme)
-                    .scaled(for: self.motion)
+                    reduceMotion: self.reduceMotion)
+                let tuning = ReleaseGradientVisualTuning.animated(colorScheme: self.colorScheme)
 
                 Canvas(
                     opaque: true,
@@ -536,18 +478,6 @@ private struct ReleaseAnimatedGradientTuning {
     let topVeilOpacity: Double
     let bottomVeilOpacity: Double
     let blobBlurRatio: CGFloat
-
-    func scaled(for motion: ReleaseGradientMotion) -> Self {
-        Self(
-            baseTintOpacity: min(0.72, self.baseTintOpacity * motion.baseTintScale),
-            primaryBlobOpacity: min(0.78, self.primaryBlobOpacity * motion.blobOpacityScale),
-            secondaryBlobOpacity: min(0.76, self.secondaryBlobOpacity * motion.blobOpacityScale),
-            accentBlobOpacity: min(0.76, self.accentBlobOpacity * motion.blobOpacityScale),
-            trailingBlobOpacity: min(0.70, self.trailingBlobOpacity * motion.blobOpacityScale),
-            topVeilOpacity: self.topVeilOpacity,
-            bottomVeilOpacity: self.bottomVeilOpacity,
-            blobBlurRatio: self.blobBlurRatio * motion.blobBlurScale)
-    }
 }
 
 private enum ReleaseGradientVisualTuning {
@@ -580,45 +510,41 @@ private enum ReleaseGradientVisualTuning {
     static func animated(colorScheme: ColorScheme) -> ReleaseAnimatedGradientTuning {
         if colorScheme == .dark {
             return ReleaseAnimatedGradientTuning(
-                baseTintOpacity: 0.14,
-                primaryBlobOpacity: 0.30,
-                secondaryBlobOpacity: 0.24,
-                accentBlobOpacity: 0.22,
-                trailingBlobOpacity: 0.18,
+                baseTintOpacity: 0.145,
+                primaryBlobOpacity: 0.324,
+                secondaryBlobOpacity: 0.259,
+                accentBlobOpacity: 0.238,
+                trailingBlobOpacity: 0.194,
                 topVeilOpacity: 0.30,
                 bottomVeilOpacity: 0.55,
-                blobBlurRatio: 0.036)
+                blobBlurRatio: 0.035)
         }
 
         return ReleaseAnimatedGradientTuning(
-            baseTintOpacity: 0.16,
-            primaryBlobOpacity: 0.30,
-            secondaryBlobOpacity: 0.26,
-            accentBlobOpacity: 0.24,
-            trailingBlobOpacity: 0.20,
+            baseTintOpacity: 0.165,
+            primaryBlobOpacity: 0.324,
+            secondaryBlobOpacity: 0.281,
+            accentBlobOpacity: 0.259,
+            trailingBlobOpacity: 0.216,
             topVeilOpacity: 0.20,
             bottomVeilOpacity: 0.38,
-            blobBlurRatio: 0.036)
+            blobBlurRatio: 0.035)
     }
 }
 
 enum ReleaseAnimatedGradientMotion {
-    static func centers(
-        phase: Double,
-        reduceMotion: Bool,
-        motion: ReleaseGradientMotion = .standard
-    ) -> [CGPoint] {
+    static func centers(phase: Double, reduceMotion: Bool) -> [CGPoint] {
         let phase = reduceMotion ? 0 : phase
-        let travelScale = reduceMotion ? 0 : motion.travelScale
+        let travel: Double = reduceMotion ? 0 : 1
         let baseAngle = phase * .pi * 2
         let slowAngle = (phase * 0.63 * .pi * 2) + 1.4
         let fastAngle = (phase * 1.21 * .pi * 2) + 2.1
 
         return [
-            self.point(0.30 + (0.18 * travelScale * sin(baseAngle)), 0.22 + (0.14 * travelScale * cos(slowAngle))),
-            self.point(0.70 + (0.18 * travelScale * cos(slowAngle)), 0.28 + (0.16 * travelScale * sin(fastAngle))),
-            self.point(0.30 + (0.16 * travelScale * sin(fastAngle)), 0.72 + (0.18 * travelScale * cos(baseAngle))),
-            self.point(0.70 + (0.18 * travelScale * cos(baseAngle)), 0.68 + (0.16 * travelScale * sin(slowAngle))),
+            self.point(0.30 + (0.216 * travel * sin(baseAngle)), 0.22 + (0.168 * travel * cos(slowAngle))),
+            self.point(0.70 + (0.216 * travel * cos(slowAngle)), 0.28 + (0.192 * travel * sin(fastAngle))),
+            self.point(0.30 + (0.192 * travel * sin(fastAngle)), 0.72 + (0.216 * travel * cos(baseAngle))),
+            self.point(0.70 + (0.216 * travel * cos(baseAngle)), 0.68 + (0.192 * travel * sin(slowAngle))),
         ]
     }
 

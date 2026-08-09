@@ -40,7 +40,6 @@ struct ReleaseViewBuildTest {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing),
             .animatedGradient(),
-            .animatedGradient(motion: .expressive),
             .animatedGradient(palette: palette),
             .custom { context in
                 LinearGradient(
@@ -135,14 +134,8 @@ struct ReleaseViewBuildTest {
 
     @Test
     func animatedGradientCentersAreStableWithReduceMotion() {
-        let first = ReleaseAnimatedGradientMotion.centers(
-            phase: 0,
-            reduceMotion: true,
-            motion: .expressive)
-        let second = ReleaseAnimatedGradientMotion.centers(
-            phase: 0.5,
-            reduceMotion: true,
-            motion: .expressive)
+        let first = ReleaseAnimatedGradientMotion.centers(phase: 0, reduceMotion: true)
+        let second = ReleaseAnimatedGradientMotion.centers(phase: 0.5, reduceMotion: true)
 
         #expect(first[0].x == second[0].x)
         #expect(first[0].y == second[0].y)
@@ -154,37 +147,6 @@ struct ReleaseViewBuildTest {
         let second = ReleaseAnimatedGradientMotion.centers(phase: 0.25, reduceMotion: false)
 
         #expect(abs(first[0].x - second[0].x) > 0.0001)
-    }
-
-    @Test
-    func expressiveAnimatedGradientMotionTravelsFartherThanSubtleMotion() {
-        let subtleStart = ReleaseAnimatedGradientMotion.centers(
-            phase: 0,
-            reduceMotion: false,
-            motion: .subtle)
-        let subtleEnd = ReleaseAnimatedGradientMotion.centers(
-            phase: 0.25,
-            reduceMotion: false,
-            motion: .subtle)
-        let expressiveStart = ReleaseAnimatedGradientMotion.centers(
-            phase: 0,
-            reduceMotion: false,
-            motion: .expressive)
-        let expressiveEnd = ReleaseAnimatedGradientMotion.centers(
-            phase: 0.25,
-            reduceMotion: false,
-            motion: .expressive)
-
-        #expect(
-            self.totalTravel(from: expressiveStart, to: expressiveEnd)
-                > self.totalTravel(from: subtleStart, to: subtleEnd))
-    }
-
-    @Test
-    func expressiveAnimatedGradientMotionHasHigherVisualContrastThanSubtleMotion() {
-        #expect(ReleaseGradientMotion.expressive.baseTintScale > ReleaseGradientMotion.subtle.baseTintScale)
-        #expect(ReleaseGradientMotion.expressive.blobOpacityScale > ReleaseGradientMotion.subtle.blobOpacityScale)
-        #expect(ReleaseGradientMotion.expressive.blobBlurScale < ReleaseGradientMotion.subtle.blobBlurScale)
     }
 
     @Test
@@ -277,14 +239,6 @@ struct ReleaseViewBuildTest {
     @Test
     func publicConformerSatisfiesSendableRequirement() {
         #expect(PublicContent().notice == nil)
-    }
-
-    private func totalTravel(from first: [CGPoint], to second: [CGPoint]) -> Double {
-        zip(first, second).reduce(0) { total, pair in
-            let xDistance = Double(pair.0.x - pair.1.x)
-            let yDistance = Double(pair.0.y - pair.1.y)
-            return total + ((xDistance * xDistance) + (yDistance * yDistance)).squareRoot()
-        }
     }
 }
 

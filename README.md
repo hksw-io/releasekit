@@ -85,7 +85,7 @@ Built-in options:
 - `.system` — the default platform background.
 - `.softGradient` / `.softGradient(brand:palette:)` — a restrained brand-derived background tuned for readable content.
 - `.linearGradient(colors:startPoint:endPoint:)` — app-provided colors with the library-managed footer treatment.
-- `.animatedGradient(brand:palette:motion:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, and automatically becomes static when Reduce Motion is enabled.
+- `.animatedGradient(brand:palette:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, and automatically becomes static when Reduce Motion is enabled.
 - `.custom { context in ... }` — a fully custom SwiftUI background. Use `context.reduceMotion`, `context.brandColor`, and `context.colorScheme` to keep custom backgrounds consistent and accessible.
 
 Every background spans behind the pinned footer and button area, including `.system`. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
@@ -113,16 +113,7 @@ ReleaseView(content: MyRelease()) {
 .releaseBackground(.animatedGradient(palette: palette))
 ```
 
-Use `motion:` when the default dancing gradient should be calmer or more expressive:
-
-```swift
-ReleaseView(content: MyRelease()) {
-    isShowing = false
-}
-.releaseBackground(.animatedGradient(motion: .expressive))
-```
-
-The built-in presets are `.subtle`, `.standard`, and `.expressive`. Stronger motion increases movement, speed, and gradient contrast. For finer control, pass `ReleaseGradientMotion(strength:)`; values are clamped from `0` to `2`, and `0` keeps the animated-gradient color field static.
+The animated gradient's travel, speed, and contrast are fixed. Reduce Motion holds it still; there is no per-app intensity to set.
 
 ReleaseKit keeps the footer pinned, sized to its own content. Rows fade out over a short band where they meet it, so the background carries through unbroken and a footer running to several lines never has content showing through it. The footer reserves no more space than it uses.
 
