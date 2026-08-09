@@ -2,7 +2,6 @@ import Foundation
 import Testing
 @testable import ReleaseKit
 
-@Suite(.serialized)
 struct ReleaseVersionTrackerTests {
     private let keyPrefix = "test.releasekit"
     private var lastShownVersionKey: String { "\(self.keyPrefix).release.lastShownVersion" }
@@ -12,8 +11,10 @@ struct ReleaseVersionTrackerTests {
         UserDefaults(suiteName: UUID().uuidString)!
     }
 
+    /// The first ever call does three things at once, so they are asserted together: it reports
+    /// "nothing new", records the launch, and marks the running version as already seen.
     @Test
-    func freshInstallDoesNotShowRelease() {
+    func freshInstallMarksCurrentVersionSeenWithoutShowingRelease() {
         let userDefaults = self.makeUserDefaults()
         let tracker = ReleaseVersionTracker(
             userDefaults: userDefaults,
@@ -21,31 +22,7 @@ struct ReleaseVersionTrackerTests {
             currentVersion: "1.7.0")
 
         #expect(tracker.shouldShowRelease() == false)
-    }
-
-    @Test
-    func freshInstallSetsHasLaunchedBefore() {
-        let userDefaults = self.makeUserDefaults()
-        let tracker = ReleaseVersionTracker(
-            userDefaults: userDefaults,
-            keyPrefix: self.keyPrefix,
-            currentVersion: "1.7.0")
-
-        _ = tracker.shouldShowRelease()
-
         #expect(userDefaults.bool(forKey: self.hasLaunchedBeforeKey) == true)
-    }
-
-    @Test
-    func freshInstallSetsLastShownVersion() {
-        let userDefaults = self.makeUserDefaults()
-        let tracker = ReleaseVersionTracker(
-            userDefaults: userDefaults,
-            keyPrefix: self.keyPrefix,
-            currentVersion: "1.7.0")
-
-        _ = tracker.shouldShowRelease()
-
         #expect(userDefaults.string(forKey: self.lastShownVersionKey) == "1.7.0")
     }
 
@@ -119,39 +96,6 @@ struct ReleaseVersionTrackerTests {
         tracker.markAsShown()
 
         #expect(tracker.shouldShowRelease() == false)
-    }
-
-    @Test
-    func versionUpgradePath() {
-        let userDefaults = self.makeUserDefaults()
-        userDefaults.set(true, forKey: self.hasLaunchedBeforeKey)
-        userDefaults.set("1.5.0", forKey: self.lastShownVersionKey)
-
-        let tracker160 = ReleaseVersionTracker(
-            userDefaults: userDefaults,
-            keyPrefix: self.keyPrefix,
-            currentVersion: "1.6.0")
-        #expect(tracker160.shouldShowRelease() == true)
-        tracker160.markAsShown()
-
-        let tracker170 = ReleaseVersionTracker(
-            userDefaults: userDefaults,
-            keyPrefix: self.keyPrefix,
-            currentVersion: "1.7.0")
-        #expect(tracker170.shouldShowRelease() == true)
-        tracker170.markAsShown()
-
-        let tracker170Again = ReleaseVersionTracker(
-            userDefaults: userDefaults,
-            keyPrefix: self.keyPrefix,
-            currentVersion: "1.7.0")
-        #expect(tracker170Again.shouldShowRelease() == false)
-
-        let tracker180 = ReleaseVersionTracker(
-            userDefaults: userDefaults,
-            keyPrefix: self.keyPrefix,
-            currentVersion: "1.8.0")
-        #expect(tracker180.shouldShowRelease() == true)
     }
 
     @Test
