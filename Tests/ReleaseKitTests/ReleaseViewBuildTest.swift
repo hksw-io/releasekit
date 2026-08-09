@@ -5,185 +5,64 @@ import Testing
 
 @MainActor
 struct ReleaseViewBuildTest {
+    /// One construction pass over every content shape and background the package ships.
+    ///
+    /// It asserts nothing at runtime on purpose: the coverage is the type check, and a single test
+    /// carries it exactly as well as the fifteen near-identical ones that used to live here.
     @Test
-    func viewConstructsWithMockContent() {
-        struct MockContent: ReleaseContent {
-            var title: Text { Text("Mock") }
-            var features: [ReleaseFeature] {
-                [ReleaseFeature(id: "single", description: Text("Single feature."))]
-            }
-            var notice: ReleaseNotice? { nil }
-            var buttonText: Text { Text("OK") }
-        }
+    func viewConstructsAcrossContentAndBackgroundVariants() {
+        let palette = ReleaseGradientPalette(
+            light: .init(base: .white, primary: .pink, secondary: .orange, accent: .yellow),
+            dark: .init(base: .black, primary: .purple, secondary: .blue, accent: .mint))
 
-        _ = ReleaseView(content: MockContent(), onDismiss: {})
-    }
-
-    @Test
-    func viewConstructsWithAllOptionalFields() {
-        struct RichContent: ReleaseContent {
-            var appIcon: Image? { Image(systemName: "app.gift.fill") }
-            var title: Text { Text("Rich") }
-            var features: [ReleaseFeature] {
-                [
-                    ReleaseFeature(
-                        id: "labeled",
-                        image: Image(systemName: "star"),
-                        label: Text("Labeled"),
-                        description: Text("With label and image."))
-                ]
-            }
-            var notice: ReleaseNotice? { ReleaseNotice(text: Text("Notice")) }
-            var buttonText: Text { Text("Continue") }
-        }
-
-        _ = ReleaseView(content: RichContent(), onDismiss: {})
-    }
-
-    @Test
-    func viewConstructsWithConvenienceFeatureInitializer() {
-        struct ConvenienceContent: ReleaseContent {
-            var title: Text { Text("Convenience") }
-            var features: [ReleaseFeature] {
-                [
-                    ReleaseFeature(
-                        id: "localized-label",
-                        systemImage: "sparkles",
-                        label: "Localized label",
-                        description: "Localized description.")
-                ]
-            }
-            var notice: ReleaseNotice? { nil }
-            var buttonText: Text { Text("OK") }
-        }
-
-        _ = ReleaseView(content: ConvenienceContent(), onDismiss: {})
-    }
-
-    @Test
-    func viewConstructsWithLongLocalizedContentAndManyFeatures() {
-        struct LongContent: ReleaseContent {
-            var appIcon: Image? { Image(systemName: "sparkles") }
-            var title: Text {
-                Text("A much longer What's New title that needs to wrap cleanly on compact devices")
-            }
-            var features: [ReleaseFeature] {
-                (1...12).map { index in
-                    ReleaseFeature(
-                        id: "feature-\(index)",
-                        image: Image(systemName: "star.circle.fill"),
-                        label: Text("Feature \(index) with a longer localized label"),
-                        description: Text(
-                            "This feature description is intentionally longer so the row has to wrap without clipping, overlapping, or pushing controls off screen."
-                        ))
-                }
-            }
-            var notice: ReleaseNotice? {
-                ReleaseNotice(
-                    text: Text("This notice is also long enough to wrap over multiple lines in a narrow sheet."))
-            }
-            var buttonText: Text {
-                Text("Continue with all of these new improvements")
-            }
-        }
-
+        _ = ReleaseView(content: MinimalContent(), onDismiss: {})
+        _ = ReleaseView(content: PublicContent(), onDismiss: {})
         _ = ReleaseView(content: LongContent(), onDismiss: {})
-    }
-
-    @Test
-    func viewConstructsWhenComputedFeaturesRecreateValues() {
-        struct ComputedContent: ReleaseContent {
-            var title: Text { Text("Computed") }
-            var features: [ReleaseFeature] {
-                [
-                    ReleaseFeature(id: "first", description: Text("First computed feature.")),
-                    ReleaseFeature(id: "second", description: Text("Second computed feature.")),
-                    ReleaseFeature(id: "third", description: Text("Third computed feature.")),
-                ]
-            }
-            var notice: ReleaseNotice? { nil }
-            var buttonText: Text { Text("Done") }
-        }
-
-        _ = ReleaseView(content: ComputedContent(), onDismiss: {})
-    }
-
-    @Test
-    func viewConstructsWithStandardStyleModifier() {
         _ = ReleaseView(content: StyledContent(), onDismiss: {})
             .releaseStyle(.standard)
-    }
-
-    @Test
-    func viewConstructsWithCustomStyleColors() {
-        let style = ReleaseStyle(
-            tint: .indigo,
-            titleColor: .primary,
-            featureIconColor: .mint,
-            featureTitleColor: .primary,
-            featureDescriptionColor: .secondary,
-            noticeColor: .secondary,
-            buttonForegroundColor: .white)
-
         _ = ReleaseView(content: StyledContent(), onDismiss: {})
-            .releaseStyle(style)
+            .releaseStyle(
+                ReleaseStyle(
+                    tint: .indigo,
+                    titleColor: .primary,
+                    featureIconColor: .mint,
+                    featureTitleColor: .primary,
+                    featureDescriptionColor: .secondary,
+                    noticeColor: .secondary,
+                    buttonForegroundColor: .white))
+
+        let backgrounds: [ReleaseBackground] = [
+            .system,
+            .softGradient,
+            .softGradient(brand: .orange),
+            .linearGradient(
+                colors: [.blue.opacity(0.18), .mint.opacity(0.12), .clear],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing),
+            .animatedGradient(),
+            .animatedGradient(motion: .expressive),
+            .animatedGradient(palette: palette),
+            .custom { context in
+                LinearGradient(
+                    colors: [
+                        Color.blue.opacity(context.reduceMotion ? 0.10 : 0.18),
+                        context.colorScheme == .dark ? .purple.opacity(0.24) : .purple.opacity(0.12),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom)
+            },
+        ]
+
+        for background in backgrounds {
+            _ = ReleaseView(content: StyledContent(), onDismiss: {})
+                .releaseBackground(background)
+        }
     }
 
     @Test
     func styleKeepsButtonLabelColorOptional() {
         #expect(ReleaseStyle(tint: .indigo).buttonForegroundColor == nil)
         #expect(ReleaseStyle(buttonForegroundColor: .white).buttonForegroundColor == .white)
-    }
-
-    @Test
-    func viewConstructsWithSystemBackgroundModifier() {
-        _ = self.backgroundView(.system)
-    }
-
-    @Test
-    func viewConstructsWithSoftGradientBackground() {
-        _ = self.backgroundView(.softGradient)
-    }
-
-    @Test
-    func viewConstructsWithBrandSoftGradientBackground() {
-        _ = self.backgroundView(.softGradient(brand: .orange))
-    }
-
-    @Test
-    func viewConstructsWithLinearGradientBackground() {
-        _ = self.backgroundView(
-            .linearGradient(
-                colors: [.blue.opacity(0.18), .mint.opacity(0.12), .clear],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing))
-    }
-
-    @Test
-    func viewConstructsWithAnimatedGradientBackground() {
-        _ = self.backgroundView(.animatedGradient())
-    }
-
-    @Test
-    func viewConstructsWithExpressiveAnimatedGradientBackground() {
-        _ = self.backgroundView(.animatedGradient(motion: .expressive))
-    }
-
-    @Test
-    func viewConstructsWithGradientPaletteOverride() {
-        let palette = ReleaseGradientPalette(
-            light: .init(
-                base: .white,
-                primary: .pink,
-                secondary: .orange,
-                accent: .yellow),
-            dark: .init(
-                base: .black,
-                primary: .purple,
-                secondary: .blue,
-                accent: .mint))
-
-        _ = self.backgroundView(.animatedGradient(palette: palette))
     }
 
     /// Supporting tones used to be fixed hues — `.cyan` and `.mint` regardless of brand — so the
@@ -200,20 +79,6 @@ struct ReleaseViewBuildTest {
 
         #expect(red.light.secondary != Color.cyan)
         #expect(red.light.accent != Color.mint)
-    }
-
-    @Test
-    func viewConstructsWithCustomBackground() {
-        _ = self.backgroundView(
-            .custom { context in
-                LinearGradient(
-                    colors: [
-                        Color.blue.opacity(context.reduceMotion ? 0.10 : 0.18),
-                        context.colorScheme == .dark ? .purple.opacity(0.24) : .purple.opacity(0.12),
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom)
-            })
     }
 
     @Test
@@ -367,22 +232,10 @@ struct ReleaseViewBuildTest {
         #expect(padding == 24)
     }
 
-    private func backgroundView(_ background: ReleaseBackground) -> some View {
-        ReleaseView(content: StyledContent(), onDismiss: {})
-            .releaseBackground(background)
-    }
-
     @Test
     func contentOmittingNoticeUsesProtocolDefault() {
-        struct MinimalContent: ReleaseContent {
-            var title: Text { Text("Minimal") }
-            var features: [ReleaseFeature] { [] }
-            var buttonText: Text { Text("OK") }
-        }
-
         #expect(MinimalContent().notice == nil)
         #expect(MinimalContent().appIcon == nil)
-        _ = ReleaseView(content: MinimalContent(), onDismiss: {})
     }
 
     @Test
@@ -423,8 +276,6 @@ struct ReleaseViewBuildTest {
     /// suite is internal, so this is the only case that would catch a regression there.
     @Test
     func publicConformerSatisfiesSendableRequirement() {
-        _ = ReleaseView(content: PublicContent(), onDismiss: {})
-
         #expect(PublicContent().notice == nil)
     }
 
@@ -450,6 +301,13 @@ public struct PublicContent: ReleaseContent {
     public var buttonText: Text { Text("Continue") }
 }
 
+/// The smallest conformance the protocol allows: no icon, no notice, no rows.
+private struct MinimalContent: ReleaseContent {
+    var title: Text { Text("Minimal") }
+    var features: [ReleaseFeature] { [] }
+    var buttonText: Text { Text("OK") }
+}
+
 private struct StyledContent: ReleaseContent {
     var title: Text { Text("Styled") }
     var features: [ReleaseFeature] {
@@ -463,5 +321,31 @@ private struct StyledContent: ReleaseContent {
     }
     var notice: ReleaseNotice? { ReleaseNotice(text: Text("Styled notice")) }
     var buttonText: Text { Text("Done") }
+}
+
+/// Long localized copy through the `LocalizedStringResource` initializers, so wrapping and the
+/// convenience initializers stay covered.
+private struct LongContent: ReleaseContent {
+    var appIcon: Image? { Image(systemName: "sparkles") }
+    var title: Text {
+        Text("A much longer What's New title that needs to wrap cleanly on compact devices")
+    }
+    var features: [ReleaseFeature] {
+        (1...12).map { index in
+            ReleaseFeature(
+                id: "feature-\(index)",
+                systemImage: "star.circle.fill",
+                label: "Feature \(index) with a longer localized label",
+                description:
+                    "This feature description is intentionally longer so the row has to wrap without clipping, overlapping, or pushing controls off screen."
+            )
+        }
+    }
+    var notice: ReleaseNotice? {
+        ReleaseNotice("This notice is also long enough to wrap over multiple lines in a narrow sheet.")
+    }
+    var buttonText: Text {
+        Text("Continue with all of these new improvements")
+    }
 }
 #endif
