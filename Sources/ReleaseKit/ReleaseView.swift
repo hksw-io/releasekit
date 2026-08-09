@@ -84,13 +84,17 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                         content: self.content,
                         iconSize: self.iconSize,
                         style: self.style)
-                    ReleaseFeatureList(
-                        features: self.content.features,
-                        featureSpacing: self.featureSpacing,
-                        featureIconSize: self.featureIconSize,
-                        featuresVisible: self.featuresVisible,
-                        reduceMotion: self.reduceMotion,
-                        style: self.style)
+                    VStack(spacing: self.featureSpacing) {
+                        ForEach(Array(self.content.features.enumerated()), id: \.element.id) { index, feature in
+                            ReleaseFeatureRow(
+                                feature: feature,
+                                index: index,
+                                featureIconSize: self.featureIconSize,
+                                featuresVisible: self.featuresVisible,
+                                reduceMotion: self.reduceMotion,
+                                style: self.style)
+                        }
+                    }
                 }
                 // Mac users expect to be able to select and copy release copy out of a window.
                 .textSelection(.enabled)
@@ -267,29 +271,6 @@ private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
-        }
-    }
-}
-
-private struct ReleaseFeatureList: View {
-    let features: [ReleaseFeature]
-    let featureSpacing: CGFloat
-    let featureIconSize: CGFloat
-    let featuresVisible: Bool
-    let reduceMotion: Bool
-    let style: ReleaseStyle
-
-    var body: some View {
-        VStack(spacing: self.featureSpacing) {
-            ForEach(Array(self.features.enumerated()), id: \.element.id) { index, feature in
-                ReleaseFeatureRow(
-                    feature: feature,
-                    index: index,
-                    featureIconSize: self.featureIconSize,
-                    featuresVisible: self.featuresVisible,
-                    reduceMotion: self.reduceMotion,
-                    style: self.style)
-            }
         }
     }
 }
