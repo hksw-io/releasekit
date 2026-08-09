@@ -2,23 +2,18 @@
 import SwiftUI
 
 enum Tokens {
-    enum Spacing {
-        static let medium: CGFloat = 12
-        static let large: CGFloat = 16
-    }
-
-    enum Radius {
-        static let iconScale: CGFloat = 0.22
-    }
-
     enum Layout {
         static let contentMaxWidth: CGFloat = 560
         static let compactHorizontalPadding: CGFloat = 16
         static let regularHorizontalPadding: CGFloat = 24
-        static let footerControlSpacing: CGFloat = Spacing.medium
+        /// Icon-to-title, and a feature icon to its text.
+        static let elementSpacing: CGFloat = 16
+        /// Corner radius of the app icon, as a fraction of its rendered size.
+        static let iconRadiusScale: CGFloat = 0.22
+        static let footerControlSpacing: CGFloat = 12
         static let footerTopPadding: CGFloat = 20
         /// The button needs to sit off the sheet edge, not against it.
-        static let footerBottomPadding: CGFloat = Spacing.large
+        static let footerBottomPadding: CGFloat = 16
     }
 
     enum Motion {

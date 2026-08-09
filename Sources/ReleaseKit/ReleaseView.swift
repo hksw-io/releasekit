@@ -233,7 +233,7 @@ private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
     let style: ReleaseStyle
 
     var body: some View {
-        VStack(spacing: Tokens.Spacing.large) {
+        VStack(spacing: Tokens.Layout.elementSpacing) {
             if let appIcon = self.content.appIcon {
                 appIcon
                     .resizable()
@@ -241,7 +241,7 @@ private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
                     .antialiased(true)
                     .aspectRatio(contentMode: .fit)
                     .frame(width: self.iconSize, height: self.iconSize)
-                    .clipShape(.rect(cornerRadius: self.iconSize * Tokens.Radius.iconScale, style: .continuous))
+                    .clipShape(.rect(cornerRadius: self.iconSize * Tokens.Layout.iconRadiusScale, style: .continuous))
                     .accessibilityHidden(true)
             }
 
@@ -272,7 +272,7 @@ private struct ReleaseFeatureRow: View {
         let delay = Tokens.Motion.revealDelay(for: self.index)
         let isVisible = self.featuresVisible
 
-        HStack(alignment: .top, spacing: Tokens.Spacing.large) {
+        HStack(alignment: .top, spacing: Tokens.Layout.elementSpacing) {
             if let image = self.feature.image {
                 image
                     .resizable()
