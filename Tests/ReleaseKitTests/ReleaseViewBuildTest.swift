@@ -169,28 +169,6 @@ struct ReleaseViewBuildTest {
     }
 
     @Test
-    func layoutUsesCompactPaddingAtBreakpoint() {
-        let padding = LayoutMetrics.horizontalPadding(
-            for: 390,
-            compact: 16,
-            regular: 24,
-            breakpoint: 390)
-
-        #expect(padding == 16)
-    }
-
-    @Test
-    func layoutUsesRegularPaddingAboveBreakpoint() {
-        let padding = LayoutMetrics.horizontalPadding(
-            for: 391,
-            compact: 16,
-            regular: 24,
-            breakpoint: 390)
-
-        #expect(padding == 24)
-    }
-
-    @Test
     func contentOmittingNoticeUsesProtocolDefault() {
         #expect(MinimalContent().notice == nil)
         #expect(MinimalContent().appIcon == nil)

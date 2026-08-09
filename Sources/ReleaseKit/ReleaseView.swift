@@ -34,8 +34,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    #endif
     @State private var featuresVisible = false
-    @State private var containerWidth: CGFloat = Tokens.Platform.assumedContainerWidth
 
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = Tokens.Platform.iconSize
     @ScaledMetric(relativeTo: .body) private var featureIconSize: CGFloat = Tokens.Platform.featureIconSize
@@ -44,8 +46,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @ScaledMetric(relativeTo: .body) private var topPadding: CGFloat = Tokens.Platform.topPadding
     @ScaledMetric(relativeTo: .body) private var bottomPadding: CGFloat = Tokens.Platform.bottomPadding
     @ScaledMetric(relativeTo: .body) private var footerFadeHeight: CGFloat = Tokens.Platform.footerFadeHeight
+    #if os(iOS)
     @ScaledMetric(relativeTo: .body) private var compactHorizontalPadding: CGFloat = Tokens.Layout
         .compactHorizontalPadding
+    #endif
     @ScaledMetric(relativeTo: .body) private var regularHorizontalPadding: CGFloat = Tokens.Layout
         .regularHorizontalPadding
 
@@ -131,13 +135,6 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                 .frame(maxWidth: .infinity)
             }
             .scrollEdgeEffectHidden(true, for: .bottom)
-            .onGeometryChange(for: CGFloat.self) { geometry in
-                geometry.size.width
-            } action: { newWidth in
-                if self.containerWidth != newWidth {
-                    self.containerWidth = newWidth
-                }
-            }
         }
         .clipped()
         .interactiveDismissDisabled()
@@ -175,23 +172,13 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         return view
     }
 
+    /// A Mac window is never compact, so macOS skips the question entirely.
     private var horizontalPadding: CGFloat {
-        LayoutMetrics.horizontalPadding(
-            for: self.containerWidth,
-            compact: self.compactHorizontalPadding,
-            regular: self.regularHorizontalPadding,
-            breakpoint: Tokens.Layout.compactWidthBreakpoint)
-    }
-}
-
-enum LayoutMetrics {
-    static func horizontalPadding(
-        for width: CGFloat,
-        compact: CGFloat,
-        regular: CGFloat,
-        breakpoint: CGFloat
-    ) -> CGFloat {
-        width <= breakpoint ? compact : regular
+        #if os(iOS)
+        self.horizontalSizeClass == .compact ? self.compactHorizontalPadding : self.regularHorizontalPadding
+        #else
+        self.regularHorizontalPadding
+        #endif
     }
 }
 
