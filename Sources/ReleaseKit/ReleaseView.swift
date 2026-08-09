@@ -72,11 +72,14 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     /// no surface to composite against and leaves a visible seam and a ghost of the rows behind it.
     public var body: some View {
         ZStack {
-            ReleaseBackgroundView(
-                background: self.background,
-                reduceMotion: self.reduceMotion,
-                brandColor: self.style.tint,
-                colorScheme: self.colorScheme)
+            self.background
+                .makeView(
+                    context: ReleaseBackgroundContext(
+                        reduceMotion: self.reduceMotion,
+                        brandColor: self.style.tint,
+                        colorScheme: self.colorScheme)
+                )
+                .ignoresSafeArea()
 
             ScrollView(.vertical) {
                 VStack(spacing: self.contentSpacing) {
@@ -221,24 +224,6 @@ struct ReleaseFooterMask: View {
                     .frame(width: max(0, self.scrollerGutter))
             }
         }
-    }
-}
-
-private struct ReleaseBackgroundView: View {
-    let background: ReleaseBackground
-    let reduceMotion: Bool
-    let brandColor: Color?
-    let colorScheme: ColorScheme
-
-    var body: some View {
-        self.background
-            .makeView(
-                context: ReleaseBackgroundContext(
-                    reduceMotion: self.reduceMotion,
-                    brandColor: self.brandColor,
-                    colorScheme: self.colorScheme)
-            )
-            .ignoresSafeArea()
     }
 }
 
