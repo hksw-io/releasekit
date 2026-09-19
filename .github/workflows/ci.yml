@@ -4,6 +4,10 @@ on:
   push:
     branches: [master]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,35 +15,43 @@ concurrency:
 
 jobs:
   verify:
-    name: Build, test and lint
-    # The package declares iOS 26 / macOS 26 minimums, so the runner needs the macOS 26 SDK.
-    # Xcode is pinned rather than left at the image default so the toolchain, and therefore
-    # swift-format's output, stays deterministic across image updates.
-    runs-on: macos-26
-
+    name: Xcode ${{ matrix.xcode }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26
+            xcode: '26.6'
+            runtime: '26'
+          # https://github.com/actions/runner-images/issues/14404
+          - runner: xcode-27
+            xcode: '27.0'
+            runtime: '27'
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
-      - name: Check out
-        uses: actions/checkout@v7
-
-      - name: Select Xcode
-        run: sudo xcode-select --switch /Applications/Xcode_26.6.app
-
+      - uses: actions/checkout@v7
       - name: Show toolchain
         run: |
-          swift --version
           xcodebuild -version
-
-      - name: Build
-        run: swift build
-
-      - name: Test
+          swift --version
+      - name: Test macOS
         run: swift test
-
-      # swift build only exercises the macOS side of the platform splits.
-      - name: Build for iOS Simulator
-        run: xcodebuild build -scheme ReleaseKit -destination 'generic/platform=iOS Simulator' -quiet
-
-      # Enforces formatting and, via AllPublicDeclarationsHaveDocumentation,
-      # that every public declaration is documented.
+      - name: Test iOS Simulator
+        env:
+          RUNTIME_MAJOR: ${{ matrix.runtime }}
+        run: |
+          device=$(xcrun simctl list devices available -j | python3 -c '
+          import json, os, sys
+          devices = json.load(sys.stdin)["devices"]
+          major = os.environ["RUNTIME_MAJOR"]
+          print(next(d["udid"] for runtime, group in devices.items()
+                     if f"iOS-{major}-" in runtime
+                     for d in group if "iPhone" in d["name"]))')
+          xcodebuild test -scheme ReleaseKit -destination "platform=iOS Simulator,id=$device" -quiet CODE_SIGNING_ALLOWED=NO
+      # Formatting stays on the stable toolchain; the 27 job checks compatibility.
       - name: Lint
+        if: matrix.xcode == '26.6'
         run: swift format lint --strict --recursive Sources Tests

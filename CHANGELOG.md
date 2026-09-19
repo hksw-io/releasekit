@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Maintenance
+
+- CI explicitly tests macOS and iOS Simulator with Xcode 26.6 and 27.0 while preserving OS 26 and Swift tools 6.2 minimums.
+
 ### Added
 
 - Bundled privacy manifest declaring the version tracker's app-local and App Group UserDefaults use.
