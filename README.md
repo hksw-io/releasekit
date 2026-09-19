@@ -212,6 +212,11 @@ Versions are compared for equality, not order, so `currentVersion` can be any st
 
 `keyPrefix` namespaces the two keys the tracker writes, so trackers with different prefixes never observe each other's state.
 
+The package bundles `PrivacyInfo.xcprivacy` for app-local (`CA92.1`) and same-App-Group
+(`1C8F.1`) UserDefaults storage. Pass only your app's defaults or an entitled App Group suite,
+and use an app-specific prefix. ReleaseKit does not collect data or perform tracking. Preserve
+the Swift package resource bundle when embedding the library and verify the manifest in your archive.
+
 For an informational sheet, allow native dismissal gestures and record acknowledgement from
 the presentation's dismissal callback. The view's closure requests dismissal from its button
 or the Mac Escape shortcut; it is not a notification for every way a presentation can close.

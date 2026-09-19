@@ -3,6 +3,20 @@ import Testing
 @testable import ReleaseKit
 
 struct ReleaseVersionTrackerTests {
+    @Test
+    func packageIncludesItsUserDefaultsPrivacyDeclaration() throws {
+        let url = try #require(Bundle.module.url(forResource: "PrivacyInfo", withExtension: "xcprivacy"))
+        let manifest = try #require(
+            PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: Any])
+        let categories = try #require(manifest["NSPrivacyAccessedAPITypes"] as? [[String: Any]])
+        let defaults = try #require(
+            categories.first {
+                $0["NSPrivacyAccessedAPIType"] as? String == "NSPrivacyAccessedAPICategoryUserDefaults"
+            })
+        #expect(Set(defaults["NSPrivacyAccessedAPITypeReasons"] as? [String] ?? []) == ["CA92.1", "1C8F.1"])
+        #expect(manifest["NSPrivacyTracking"] as? Bool == false)
+    }
+
     private let keyPrefix = "test.releasekit"
     private var lastShownVersionKey: String { "\(self.keyPrefix).release.lastShownVersion" }
     private var hasLaunchedBeforeKey: String { "\(self.keyPrefix).hasLaunchedBefore" }

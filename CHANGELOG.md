@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- Bundled privacy manifest declaring the version tracker's app-local and App Group UserDefaults use.
+
 - Optional native interactive dismissal, with presentation-level acknowledgement guidance covering gestures and programmatic dismissal.
 
 ### Fixed

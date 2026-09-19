@@ -14,7 +14,8 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ReleaseKit"),
+            name: "ReleaseKit",
+            resources: [.copy("PrivacyInfo.xcprivacy")]),
         .testTarget(
             name: "ReleaseKitTests",
             dependencies: ["ReleaseKit"]),
