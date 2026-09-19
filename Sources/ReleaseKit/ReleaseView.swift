@@ -6,8 +6,9 @@ import SwiftUI
 ///
 /// Supply the copy through a ``ReleaseContent`` conformer and present it however the app prefers —
 /// usually a sheet. Dismissal stays with the caller through `onDismiss`; the view never dismisses
-/// itself, and interactive dismissal is disabled, so every exit runs that closure. Return activates
-/// the button on both platforms, and on macOS Escape runs `onDismiss` too.
+/// itself. Interactive dismissal is disabled by default. Return activates the button on both
+/// platforms, and on macOS Escape runs `onDismiss` too. Record presentation completion using the
+/// presenting sheet's `onDismiss`, which also covers gestures and programmatic dismissal.
 ///
 /// ```swift
 /// ContentView()
@@ -29,6 +30,7 @@ import SwiftUI
 public struct ReleaseView<Content: ReleaseContent>: View {
     let content: Content
     let onDismiss: () -> Void
+    let allowsInteractiveDismissal: Bool
     private var background: ReleaseBackground = .system
     private var style: ReleaseStyle = .standard
 
@@ -59,11 +61,17 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     ///
     /// - Parameters:
     ///   - content: The copy and icon to present.
-    ///   - onDismiss: Called when the footer button is tapped. The caller owns dismissal — the view
-    ///     does not dismiss itself.
-    public init(content: Content, onDismiss: @escaping () -> Void) {
+    ///   - allowsInteractiveDismissal: Allows native dismissal gestures. Defaults to `false` for compatibility.
+    ///   - onDismiss: Requests dismissal from the footer or Escape. The caller owns dismissal; use
+    ///     the presenting sheet's `onDismiss` to observe every completed dismissal.
+    public init(
+        content: Content,
+        allowsInteractiveDismissal: Bool = false,
+        onDismiss: @escaping () -> Void
+    ) {
         self.content = content
         self.onDismiss = onDismiss
+        self.allowsInteractiveDismissal = allowsInteractiveDismissal
     }
 
     /// The composed sheet: background behind a scrolling column, with the footer pinned as a bottom
@@ -148,7 +156,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             .scrollEdgeEffectHidden(true, for: .bottom)
         }
         .clipped()
-        .interactiveDismissDisabled()
+        .interactiveDismissDisabled(!self.allowsInteractiveDismissal)
         .tint(self.style.tint)
         #if os(macOS)
         .frame(

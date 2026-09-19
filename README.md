@@ -212,6 +212,21 @@ Versions are compared for equality, not order, so `currentVersion` can be any st
 
 `keyPrefix` namespaces the two keys the tracker writes, so trackers with different prefixes never observe each other's state.
 
+For an informational sheet, allow native dismissal gestures and record acknowledgement from
+the presentation's dismissal callback. The view's closure requests dismissal from its button
+or the Mac Escape shortcut; it is not a notification for every way a presentation can close.
+
+```swift
+.sheet(isPresented: $isShowing, onDismiss: tracker.markAsShown) {
+    ReleaseView(content: MyRelease(), allowsInteractiveDismissal: true) {
+        isShowing = false
+    }
+}
+```
+
+The default remains `false` for source and behavior compatibility. Do not also mark the version
+inside the button callback when using the presentation callback.
+
 ## Local development
 
 Run the package tests from the package root:

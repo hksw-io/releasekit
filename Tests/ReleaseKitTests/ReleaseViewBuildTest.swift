@@ -6,6 +6,14 @@ import Testing
 @MainActor
 struct ReleaseViewBuildTest {
     @Test
+    func interactiveDismissalIsOptIn() {
+        #expect(!ReleaseView(content: MinimalContent(), onDismiss: {}).allowsInteractiveDismissal)
+        #expect(
+            ReleaseView(content: MinimalContent(), allowsInteractiveDismissal: true, onDismiss: {})
+                .allowsInteractiveDismissal)
+    }
+
+    @Test
     func accessibleBackgroundsUseTheSystemSurfaceForEitherPreference() {
         #expect(!ReleaseBackgroundContext(reduceMotion: false).prefersPlainBackground)
         #expect(ReleaseBackgroundContext(reduceMotion: false, reduceTransparency: true).prefersPlainBackground)

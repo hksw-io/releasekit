@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- Optional native interactive dismissal, with presentation-level acknowledgement guidance covering gestures and programmatic dismissal.
+
 ### Fixed
 
 - Built-in gradients use the opaque system surface under Reduce Transparency or Increase Contrast; custom backgrounds receive both preferences.
