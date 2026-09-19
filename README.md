@@ -137,6 +137,10 @@ ReleaseView(content: MyRelease()) {
 
 The animated gradient's travel, speed, and contrast are fixed. Reduce Motion holds it still; there is no per-app intensity to set.
 
+Reduce Transparency or Increase Contrast replaces either built-in gradient with the opaque
+system surface. Custom backgrounds receive `context.reduceTransparency` and
+`context.colorSchemeContrast` as well, so they can provide the same accessible treatment.
+
 ReleaseKit keeps the footer pinned, sized to its own content. Rows fade out over a short band where they meet it, so the background carries through unbroken and a footer running to several lines never has content showing through it. The footer reserves no more space than it uses.
 
 ## Styling

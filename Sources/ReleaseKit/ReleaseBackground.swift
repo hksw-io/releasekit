@@ -13,6 +13,12 @@ public struct ReleaseBackgroundContext: Sendable {
     public let brandColor: Color?
     /// The active color scheme, so a background can pick its own light and dark tones.
     public let colorScheme: ColorScheme
+    /// Whether Reduce Transparency is enabled.
+    public let reduceTransparency: Bool
+    /// The requested contrast treatment.
+    public let colorSchemeContrast: ColorSchemeContrast
+
+    var prefersPlainBackground: Bool { self.reduceTransparency || self.colorSchemeContrast == .increased }
 
     /// Creates a context. The package builds this for you; construct one directly only in tests or
     /// previews.
@@ -21,14 +27,20 @@ public struct ReleaseBackgroundContext: Sendable {
     ///   - reduceMotion: Whether Reduce Motion is enabled.
     ///   - brandColor: Brand color from the applied style.
     ///   - colorScheme: The active color scheme.
+    ///   - reduceTransparency: Whether to replace built-in gradients with the opaque system surface.
+    ///   - colorSchemeContrast: Whether an increased-contrast surface is requested.
     public init(
         reduceMotion: Bool,
         brandColor: Color? = nil,
-        colorScheme: ColorScheme = .light
+        colorScheme: ColorScheme = .light,
+        reduceTransparency: Bool = false,
+        colorSchemeContrast: ColorSchemeContrast = .standard
     ) {
         self.reduceMotion = reduceMotion
         self.brandColor = brandColor
         self.colorScheme = colorScheme
+        self.reduceTransparency = reduceTransparency
+        self.colorSchemeContrast = colorSchemeContrast
     }
 
     /// The tones a gradient background should draw with: an explicit palette wins, then an explicit
@@ -218,6 +230,9 @@ extension ReleaseBackground {
     @MainActor
     func makeView(context: ReleaseBackgroundContext) -> AnyView {
         switch self.storage {
+        case .softGradient where context.prefersPlainBackground,
+            .animatedGradient where context.prefersPlainBackground:
+            AnyView(Tokens.background)
         case .system:
             AnyView(Tokens.background)
         case let .softGradient(brand, palette):

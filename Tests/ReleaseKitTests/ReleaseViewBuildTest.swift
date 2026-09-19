@@ -5,6 +5,13 @@ import Testing
 
 @MainActor
 struct ReleaseViewBuildTest {
+    @Test
+    func accessibleBackgroundsUseTheSystemSurfaceForEitherPreference() {
+        #expect(!ReleaseBackgroundContext(reduceMotion: false).prefersPlainBackground)
+        #expect(ReleaseBackgroundContext(reduceMotion: false, reduceTransparency: true).prefersPlainBackground)
+        #expect(ReleaseBackgroundContext(reduceMotion: false, colorSchemeContrast: .increased).prefersPlainBackground)
+    }
+
     /// One construction pass over every content shape and background the package ships.
     ///
     /// It asserts nothing at runtime on purpose: the coverage is the type check, and a single test

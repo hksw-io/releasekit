@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Built-in gradients use the opaque system surface under Reduce Transparency or Increase Contrast; custom backgrounds receive both preferences.
+
 ## [3.0.0] - 2026-08-09
 
 An over-engineering audit and the cuts it found. The sheet, the gradients, and the tracker look and behave as they did in 2.0.2 — the breaks are all in API surface that only ever had one setting worth using. Source shrank from 2262 to 1707 lines.

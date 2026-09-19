@@ -33,6 +33,8 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     private var style: ReleaseStyle = .standard
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @Environment(\.colorScheme) private var colorScheme
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -77,7 +79,9 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                     context: ReleaseBackgroundContext(
                         reduceMotion: self.reduceMotion,
                         brandColor: self.style.tint,
-                        colorScheme: self.colorScheme)
+                        colorScheme: self.colorScheme,
+                        reduceTransparency: self.reduceTransparency,
+                        colorSchemeContrast: self.colorSchemeContrast)
                 )
                 .ignoresSafeArea()
 
