@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-18
+
+Opt-in native dismissal, an accessible fallback for the gradients, and a privacy manifest for the version tracker. Everything is additive: existing call sites compile and behave as they did in 3.0.0.
+
 ### Maintenance
 
 - CI explicitly tests macOS and iOS Simulator with Xcode 26.6 and 27.0 while preserving OS 26 and Swift tools 6.2 minimums.
@@ -106,6 +110,8 @@ First tagged release. Everything before this was consumed off the `master` branc
 
 - Replaced the deprecated `ScrollView(_:showsIndicators:)` initializer, and removed a duplicate `scrollIndicators` modifier, an inert `controlSize` under `buttonStyle(.plain)`, and a redundant single-child `ZStack` in the footer overlay.
 
+[3.1.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/3.1.0
+[3.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/3.0.0
 [2.0.2]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.2
 [2.0.1]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.1
 [2.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.0

@@ -52,14 +52,10 @@ On macOS it is a resizable window with the platform's overlay scroller, and Esca
 ## Installation
 
 ```swift
-.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "3.0.0")
+.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "3.1.0")
 ```
 
 Or in Xcode: **File > Add Package Dependencies** and enter the URL above.
-
-`allowsInteractiveDismissal`, the Reduce Transparency and Increase Contrast fallback with its
-matching `context` values, and the bundled privacy manifest are on `master` but not in 3.0.0.
-They ship in the next tagged release.
 
 ## Usage
 
