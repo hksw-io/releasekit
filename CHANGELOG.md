@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - `ReleaseVersionTracker.hasLaunchedBefore`, a read-only view of the first-launch state, and `recordFirstLaunch()`, the write `shouldShowRelease()` performs on a fresh install. Apps no longer need to read the tracker's key by name or call `shouldShowRelease()` only to seed state. Both UserDefaults keys are unchanged.
 
+### Fixed
+
+- Backgrounds fill the whole sheet. The background sat inside the view's clip, which cut it off at the safe area, so on an iPhone a gradient or custom background ended in a flat band under the footer button. It is now drawn behind the clip, as GreetKit does, and reaches the sheet's edges; the footer and the fade above it are unchanged.
+
 ## [3.1.0] - 2026-10-18
 
 Opt-in native dismissal, an accessible fallback for the gradients, and a privacy manifest for the version tracker. Everything is additive: existing call sites compile and behave as they did in 3.0.0.

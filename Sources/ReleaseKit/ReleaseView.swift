@@ -19,11 +19,11 @@ import SwiftUI
 ///     }
 /// ```
 ///
-/// The footer is a bottom safe-area bar, so content scrolls beneath it and the system's scroll edge
-/// effect keeps overflowing rows legible where they meet it. Its button spans the footer on both
-/// platforms. Feature rows animate in with a staggered reveal that is suppressed under Reduce
-/// Motion. Layout adapts to compact and regular widths, to Dynamic Type, and to resizable macOS
-/// windows.
+/// The footer is a bottom safe-area bar. Rows fade out over a short band where they meet it, and
+/// the background runs behind it to the edges of the sheet, past the safe area. Its button spans
+/// the footer on both platforms. Feature rows animate in with a staggered reveal that is suppressed
+/// under Reduce Motion. Layout adapts to compact and regular widths, to Dynamic Type, and to
+/// resizable macOS windows.
 ///
 /// Use ``releaseBackground(_:)`` for the surface and ``releaseStyle(_:)`` for foreground colors.
 /// Pair with ``ReleaseVersionTracker`` to decide when to present.
@@ -74,14 +74,78 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         self.allowsInteractiveDismissal = allowsInteractiveDismissal
     }
 
-    /// The composed sheet: background behind a scrolling column, with the footer pinned as a bottom
-    /// bar.
+    /// The composed sheet: a scrolling column with the footer pinned as a bottom bar, over a
+    /// background that fills the sheet.
     ///
-    /// The background is a sibling in the `ZStack` rather than a `.background` on the scroll view.
-    /// That placement is load-bearing: applied to the scroll view, the bar's scroll edge effect has
-    /// no surface to composite against and leaves a visible seam and a ghost of the rows behind it.
+    /// The background is applied last, outside the row mask and the clip. Inside the mask it would
+    /// fade with the rows; inside the clip it stops at the safe area, which left a flat band under
+    /// the footer button on an iPhone.
     public var body: some View {
-        ZStack {
+        ScrollView(.vertical) {
+            VStack(spacing: self.contentSpacing) {
+                ReleaseHeaderSection(
+                    content: self.content,
+                    iconSize: self.iconSize,
+                    style: self.style)
+                VStack(spacing: self.featureSpacing) {
+                    ForEach(Array(self.content.features.enumerated()), id: \.element.id) { index, feature in
+                        ReleaseFeatureRow(
+                            feature: feature,
+                            index: index,
+                            featureIconSize: self.featureIconSize,
+                            featuresVisible: self.featuresVisible,
+                            reduceMotion: self.reduceMotion,
+                            style: self.style)
+                    }
+                }
+            }
+            // Mac users expect to be able to select and copy release copy out of a window.
+            .textSelection(.enabled)
+            .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, self.horizontalPadding)
+            .padding(.top, self.topPadding)
+            .padding(.bottom, self.bottomPadding)
+        }
+        // The Mac's overlay scroller is the conventional signal that a list continues, and it
+        // already hides itself when idle. iPhone leans on the fade above the footer instead.
+        #if os(macOS)
+        .scrollIndicators(.automatic, axes: .vertical)
+        #else
+        .scrollIndicators(.never, axes: .vertical)
+        #endif
+        .scrollBounceBehavior(.basedOnSize)
+        // Fade the rows out where they meet the bar.
+        //
+        // Neither system edge effect fits. The hard style draws a divider across a surface meant
+        // to be continuous; the soft style drops the divider but bleeds a tall footer's own text
+        // over the rows behind it.
+        //
+        // The band is all that is needed. `safeAreaBar` already reserves the bar's height, so
+        // rows stop at its top edge rather than running underneath — erasing a footer's height
+        // as well, as this did at first, just blanks a second footer's worth of content above
+        // the real one. Because the background is drawn outside this mask, it shows through the
+        // band unbroken, including the animated gradient.
+        .mask {
+            ReleaseFooterMask(
+                fadeHeight: self.footerFadeHeight,
+                scrollerGutter: Tokens.Platform.scrollerGutter)
+        }
+        .safeAreaBar(edge: .bottom) {
+            ReleaseFooterSection(
+                content: self.content,
+                style: self.style,
+                onDismiss: self.onDismiss
+            )
+            .frame(maxWidth: Tokens.Layout.contentMaxWidth)
+            .padding(.horizontal, self.horizontalPadding)
+            .frame(maxWidth: .infinity)
+        }
+        .scrollEdgeEffectHidden(true, for: .bottom)
+        .clipped()
+        // Behind the clip, not inside it. Inside, the clip cut the background off at the safe
+        // area, so a gradient stopped short of the sheet's bottom edge.
+        .background {
             self.background
                 .makeView(
                     context: ReleaseBackgroundContext(
@@ -92,70 +156,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                         colorSchemeContrast: self.colorSchemeContrast)
                 )
                 .ignoresSafeArea()
-
-            ScrollView(.vertical) {
-                VStack(spacing: self.contentSpacing) {
-                    ReleaseHeaderSection(
-                        content: self.content,
-                        iconSize: self.iconSize,
-                        style: self.style)
-                    VStack(spacing: self.featureSpacing) {
-                        ForEach(Array(self.content.features.enumerated()), id: \.element.id) { index, feature in
-                            ReleaseFeatureRow(
-                                feature: feature,
-                                index: index,
-                                featureIconSize: self.featureIconSize,
-                                featuresVisible: self.featuresVisible,
-                                reduceMotion: self.reduceMotion,
-                                style: self.style)
-                        }
-                    }
-                }
-                // Mac users expect to be able to select and copy release copy out of a window.
-                .textSelection(.enabled)
-                .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, self.horizontalPadding)
-                .padding(.top, self.topPadding)
-                .padding(.bottom, self.bottomPadding)
-            }
-            // The Mac's overlay scroller is the conventional signal that a list continues, and it
-            // already hides itself when idle. iPhone leans on the scroll edge effect instead.
-            #if os(macOS)
-            .scrollIndicators(.automatic, axes: .vertical)
-            #else
-            .scrollIndicators(.never, axes: .vertical)
-            #endif
-            .scrollBounceBehavior(.basedOnSize)
-            // Fade the rows out where they meet the bar.
-            //
-            // Neither system edge effect fits. The hard style draws a divider across a surface meant
-            // to be continuous; the soft style drops the divider but bleeds a tall footer's own text
-            // over the rows behind it.
-            //
-            // The band is all that is needed. `safeAreaBar` already reserves the bar's height, so
-            // rows stop at its top edge rather than running underneath — erasing a footer's height
-            // as well, as this did at first, just blanks a second footer's worth of content above
-            // the real one. Because the background is a sibling behind the scroll view, it shows
-            // through the band unbroken, including the animated gradient.
-            .mask {
-                ReleaseFooterMask(
-                    fadeHeight: self.footerFadeHeight,
-                    scrollerGutter: Tokens.Platform.scrollerGutter)
-            }
-            .safeAreaBar(edge: .bottom) {
-                ReleaseFooterSection(
-                    content: self.content,
-                    style: self.style,
-                    onDismiss: self.onDismiss
-                )
-                .frame(maxWidth: Tokens.Layout.contentMaxWidth)
-                .padding(.horizontal, self.horizontalPadding)
-                .frame(maxWidth: .infinity)
-            }
-            .scrollEdgeEffectHidden(true, for: .bottom)
         }
-        .clipped()
         .interactiveDismissDisabled(!self.allowsInteractiveDismissal)
         .tint(self.style.tint)
         #if os(macOS)

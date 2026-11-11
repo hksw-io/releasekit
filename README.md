@@ -118,7 +118,7 @@ Built-in options:
 - `.animatedGradient(brand:palette:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, and automatically becomes static when Reduce Motion is enabled.
 - `.custom { context in ... }` — a fully custom SwiftUI background, including a plain `LinearGradient` of your own colors. Use `context.reduceMotion`, `context.reduceTransparency`, `context.colorSchemeContrast`, `context.brandColor`, and `context.colorScheme` to keep custom backgrounds consistent and accessible.
 
-Every background spans behind the pinned footer and button area, including `.system`. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
+Every background fills the whole sheet, including `.system`: it runs behind the pinned footer and button and on past the safe area to the sheet's edges. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
 
 `ReleaseStyle.tint` is the default brand color for `.softGradient` and `.animatedGradient()`, falling back to blue when no tint is set. The supporting tones are that same color washed toward the platform surface, so the field reads as one color family rather than as unrelated hues — and because the surface is light in light mode and dark in dark mode, the same wash lifts the palette in one and deepens it in the other.
 
