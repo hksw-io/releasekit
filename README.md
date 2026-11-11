@@ -220,7 +220,18 @@ The first launch after install is treated as "not new" — users see the sheet o
 
 Versions are compared for equality, not order, so `currentVersion` can be any string your app treats as its release identity. A rollback to an older version also shows the sheet.
 
-`keyPrefix` namespaces the two keys the tracker writes, `<keyPrefix>.release.lastShownVersion` and `<keyPrefix>.hasLaunchedBefore`, so trackers with different prefixes never observe each other's state. Don't write either key from your own code.
+`keyPrefix` namespaces the two keys the tracker writes, `<keyPrefix>.release.lastShownVersion` and `<keyPrefix>.hasLaunchedBefore`, so trackers with different prefixes never observe each other's state. Don't read or write either key from your own code; the tracker exposes the first-launch state instead:
+
+```swift
+// A pure read: false on a fresh install until the first shouldShowRelease() or recordFirstLaunch().
+if !tracker.hasLaunchedBefore {
+    // show a welcome instead
+}
+
+// Adopting an installation that predates the tracker: record the version it last ran,
+// so the running version counts as new. Does nothing once a launch has been recorded.
+ReleaseVersionTracker(keyPrefix: "com.example.myapp", currentVersion: "1.1").recordFirstLaunch()
+```
 
 `userDefaults` defaults to `.standard`. Pass a suite to share state across an App Group or to isolate tests:
 

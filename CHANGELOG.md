@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- `ReleaseVersionTracker.hasLaunchedBefore`, a read-only view of the first-launch state, and `recordFirstLaunch()`, the write `shouldShowRelease()` performs on a fresh install. Apps no longer need to read the tracker's key by name or call `shouldShowRelease()` only to seed state. Both UserDefaults keys are unchanged.
+
 ## [3.1.0] - 2026-10-18
 
 Opt-in native dismissal, an accessible fallback for the gradients, and a privacy manifest for the version tracker. Everything is additive: existing call sites compile and behave as they did in 3.0.0.

@@ -40,6 +40,49 @@ struct ReleaseVersionTrackerTests {
         #expect(userDefaults.string(forKey: self.lastShownVersionKey) == "1.7.0")
     }
 
+    /// `hasLaunchedBefore` is the read-only half of the first-launch state: asking never writes.
+    @Test
+    func hasLaunchedBeforeReadsWithoutWriting() {
+        let userDefaults = self.makeUserDefaults()
+        let tracker = ReleaseVersionTracker(
+            userDefaults: userDefaults,
+            keyPrefix: self.keyPrefix,
+            currentVersion: "1.7.0")
+
+        #expect(tracker.hasLaunchedBefore == false)
+        #expect(userDefaults.object(forKey: self.hasLaunchedBeforeKey) == nil)
+        #expect(userDefaults.object(forKey: self.lastShownVersionKey) == nil)
+
+        _ = tracker.shouldShowRelease()
+
+        #expect(tracker.hasLaunchedBefore == true)
+    }
+
+    /// Adopting an installation that predates the tracker: record the version it last ran, and the
+    /// running version then counts as new. A second record must not move the recorded version.
+    @Test
+    func recordFirstLaunchSeedsOnceAndNeverOverwrites() {
+        let userDefaults = self.makeUserDefaults()
+        let previous = ReleaseVersionTracker(
+            userDefaults: userDefaults,
+            keyPrefix: self.keyPrefix,
+            currentVersion: "1.1")
+        let current = ReleaseVersionTracker(
+            userDefaults: userDefaults,
+            keyPrefix: self.keyPrefix,
+            currentVersion: "1.5.0")
+
+        previous.recordFirstLaunch()
+
+        #expect(current.hasLaunchedBefore == true)
+        #expect(userDefaults.string(forKey: self.lastShownVersionKey) == "1.1")
+        #expect(current.shouldShowRelease() == true)
+
+        current.recordFirstLaunch()
+
+        #expect(userDefaults.string(forKey: self.lastShownVersionKey) == "1.1")
+    }
+
     @Test
     func existingUserSameVersionDoesNotShowRelease() {
         let userDefaults = self.makeUserDefaults()

@@ -48,22 +48,41 @@ public struct ReleaseVersionTracker: @unchecked Sendable {
         self.hasLaunchedBeforeKey = "\(keyPrefix).hasLaunchedBefore"
     }
 
+    /// Whether a first launch has been recorded for this key prefix and defaults store.
+    ///
+    /// A pure read: `false` until ``shouldShowRelease()`` or ``recordFirstLaunch()`` has run once,
+    /// `true` from then on. Use it to tell a fresh install from an update without reading the
+    /// tracker's key yourself.
+    public var hasLaunchedBefore: Bool {
+        self.userDefaults.bool(forKey: self.hasLaunchedBeforeKey)
+    }
+
+    /// Records the first launch: marks the app as launched and `currentVersion` as already seen.
+    ///
+    /// Does nothing once a launch has been recorded, so it never overwrites a version the user has
+    /// seen. ``shouldShowRelease()`` calls this itself on a fresh install. Call it directly to adopt
+    /// an installation that predates the tracker: record the version it last ran, and the next
+    /// `shouldShowRelease()` for a newer version returns `true`.
+    public func recordFirstLaunch() {
+        guard !self.hasLaunchedBefore else { return }
+        self.userDefaults.set(true, forKey: self.hasLaunchedBeforeKey)
+        self.userDefaults.set(self.currentVersion, forKey: self.lastShownVersionKey)
+    }
+
     /// Reports whether the release sheet should be presented, and **writes to `UserDefaults` on the
     /// first ever call**.
     ///
-    /// Despite the name, this is not a pure query. On a fresh install it marks the app as launched,
-    /// records `currentVersion` as already seen, and returns `false` — a first-run user gets the app
-    /// itself, not a list of changes they were never absent for. Every later call is read-only.
+    /// Despite the name, this is not a pure query. On a fresh install it calls
+    /// ``recordFirstLaunch()`` and returns `false` — a first-run user gets the app itself, not a
+    /// list of changes they were never absent for. Every later call is read-only.
     ///
     /// Because the comparison is equality rather than ordering, rolling *back* to a version the user
     /// has not seen most recently also returns `true`.
     ///
     /// - Returns: `true` when the current version differs from the last one marked as shown.
     public func shouldShowRelease() -> Bool {
-        let hasLaunchedBefore = self.userDefaults.bool(forKey: self.hasLaunchedBeforeKey)
-        if !hasLaunchedBefore {
-            self.userDefaults.set(true, forKey: self.hasLaunchedBeforeKey)
-            self.userDefaults.set(self.currentVersion, forKey: self.lastShownVersionKey)
+        guard self.hasLaunchedBefore else {
+            self.recordFirstLaunch()
             return false
         }
 
