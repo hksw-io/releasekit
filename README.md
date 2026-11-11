@@ -250,6 +250,24 @@ With the presentation callback recording acknowledgement, the button closure onl
 `allowsInteractiveDismissal: false`; otherwise a swipe leaves the release unacknowledged and
 the sheet comes back on the next launch.
 
+## Fitting the sheet to its content
+
+By default the presentation picks the sheet's height: full height on iPhone, a fixed form on iPad, a fixed window on Mac. `releaseFittedSheet()` sizes it to the release content instead, so a few features get a short sheet and a longer list gets the room it needs without scrolling:
+
+```swift
+.sheet(isPresented: $isShowing, onDismiss: tracker.markAsShown) {
+    ReleaseView(content: MyRelease()) {
+        isShowing = false
+    }
+    .releaseBackground(.softGradient)
+    .releaseFittedSheet()
+}
+```
+
+It is a general view modifier, so apply it after `releaseBackground(_:)` and `releaseStyle(_:)`. The height is the scrolling content plus the pinned footer. On iPhone it becomes the sheet's only detent, on iPad and Mac the sheet fits it, and content taller than the screen still gets a full-height sheet and scrolls. On Mac the sheet never goes below its 420pt floor.
+
+The same height is offered as the view's ideal height, so a `UIHostingController` or `NSHostingController` with `sizingOptions = .preferredContentSize` fits too. GreetKit ships the same modifier as `greetFittedSheet()`.
+
 ## Local development
 
 Run the package tests from the package root:

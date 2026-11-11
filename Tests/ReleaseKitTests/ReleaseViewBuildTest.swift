@@ -71,6 +71,10 @@ struct ReleaseViewBuildTest {
         // The accessibility layout drops the icon and moves the notice into the scroll content.
         _ = ReleaseView(content: LongContent(), onContinue: {})
             .dynamicTypeSize(.accessibility3)
+
+        _ = ReleaseView(content: StyledContent(), onContinue: {})
+            .releaseBackground(.softGradient)
+            .releaseFittedSheet()
     }
 
     /// Supporting tones used to be fixed hues — `.cyan` and `.mint` regardless of brand — so the
@@ -112,6 +116,19 @@ struct ReleaseViewBuildTest {
         #expect(defaultContext.colorScheme == .light)
         #expect(!darkContext.reduceMotion)
         #expect(darkContext.colorScheme == .dark)
+    }
+
+    /// The fitted height follows the content, except that a Mac sheet never lays out shorter than
+    /// its floor, so offering less would clip the footer.
+    @Test
+    func fittedSheetFollowsContentAboveTheMacFloor() {
+        #expect(ReleaseFittedSheet.idealHeight(for: 900) == 900)
+
+        #if os(macOS)
+        #expect(ReleaseFittedSheet.idealHeight(for: 100) == Tokens.Platform.sheetMinHeight)
+        #else
+        #expect(ReleaseFittedSheet.idealHeight(for: 100) == 100)
+        #endif
     }
 
     /// The fade band is the whole mask. `safeAreaBar` reserves the footer's height itself, so

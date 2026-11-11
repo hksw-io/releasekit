@@ -9,6 +9,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Added
 
 - `ReleaseVersionTracker.hasLaunchedBefore`, a read-only view of the first-launch state, and `recordFirstLaunch()`, the write `shouldShowRelease()` performs on a fresh install. Apps no longer need to read the tracker's key by name or call `shouldShowRelease()` only to seed state. Both UserDefaults keys are unchanged.
+- `releaseFittedSheet()`, a view modifier that sizes the presentation to the release content: the sheet's only detent on iPhone, a fitted sheet on iPad and Mac, and the ideal height for a hosting controller that uses `preferredContentSize`. It replaces the wrappers Swiftflip and Brevier each wrote, one of which copied the kit's private 420pt Mac floor. GreetKit ships the same modifier as `greetFittedSheet()`.
 
 ### Changed
 
