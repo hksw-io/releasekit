@@ -68,7 +68,8 @@ struct ReleaseViewBuildTest {
                 .releaseBackground(background)
         }
 
-        // The accessibility layout drops the icon and moves the notice into the scroll content.
+        // Construction only: building a view doesn't run `body`, so the accessibility layout and the
+        // fitted sheet's sizing are checked in previews, not here.
         _ = ReleaseView(content: LongContent(), onContinue: {})
             .dynamicTypeSize(.accessibility3)
 

@@ -266,7 +266,7 @@ By default the presentation picks the sheet's height: full height on iPhone, a f
 
 It is a general view modifier, so apply it after `releaseBackground(_:)` and `releaseStyle(_:)`. The height is the scrolling content plus the pinned footer. On iPhone it becomes the sheet's only detent, on iPad and Mac the sheet fits it, and content taller than the screen still gets a full-height sheet and scrolls. On Mac the sheet never goes below its 420pt floor.
 
-The same height is offered as the view's ideal height, so a `UIHostingController` or `NSHostingController` with `sizingOptions = .preferredContentSize` fits too. GreetKit ships the same modifier as `greetFittedSheet()`.
+The same height is offered as the view's ideal height, so a `UIHostingController` or `NSHostingController` with `sizingOptions = .preferredContentSize` fits too. GreetKit 3.2.0 ships the same modifier as `greetFittedSheet()`.
 
 ## Local development
 

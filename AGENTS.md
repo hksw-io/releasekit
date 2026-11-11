@@ -26,7 +26,7 @@ Instructions for agents working in this repository. RFC 2119 keywords apply.
 - `ReleaseVersionTracker` owns only version display tracking. Keep persistence behavior deterministic and covered by tests.
 - The first launch behavior is intentional: the sheet is not shown on fresh install, and the current version is marked as seen.
 - Feature rows must keep stable identity and work with optional icons, labels, notices, and long localized text.
-- Dismissal remains caller-controlled through the `onDismiss` closure.
+- Dismissal remains caller-controlled through the `onContinue` closure.
 
 ## Testing and Verification
 
