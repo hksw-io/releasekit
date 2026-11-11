@@ -142,6 +142,14 @@ struct ReleaseViewBuildTest {
         #expect(first[0].y == second[0].y)
     }
 
+    /// The gradient stops drawing in an inactive window as well as under Reduce Motion.
+    @Test
+    func animatedGradientPausesForReduceMotionOrAnInactiveWindow() {
+        #expect(!ReleaseAnimatedGradientMotion.isPaused(reduceMotion: false, appearsActive: true))
+        #expect(ReleaseAnimatedGradientMotion.isPaused(reduceMotion: false, appearsActive: false))
+        #expect(ReleaseAnimatedGradientMotion.isPaused(reduceMotion: true, appearsActive: true))
+    }
+
     @Test
     func animatedGradientCentersChangeAcrossPhases() {
         let first = ReleaseAnimatedGradientMotion.centers(phase: 0, reduceMotion: false)

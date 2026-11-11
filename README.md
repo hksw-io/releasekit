@@ -115,7 +115,7 @@ Built-in options:
 
 - `.system` — the default platform background.
 - `.softGradient` / `.softGradient(brand:palette:)` — a restrained brand-derived background tuned for readable content.
-- `.animatedGradient(brand:palette:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, and automatically becomes static when Reduce Motion is enabled.
+- `.animatedGradient(brand:palette:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, automatically becomes static when Reduce Motion is enabled, and pauses while its window is inactive.
 - `.custom { context in ... }` — a fully custom SwiftUI background, including a plain `LinearGradient` of your own colors. Use `context.reduceMotion`, `context.reduceTransparency`, `context.colorSchemeContrast`, `context.brandColor`, and `context.colorScheme` to keep custom backgrounds consistent and accessible.
 
 Every background fills the whole sheet, including `.system`: it runs behind the pinned footer and button and on past the safe area to the sheet's edges. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
@@ -143,7 +143,7 @@ ReleaseView(content: MyRelease()) {
 .releaseBackground(.animatedGradient(palette: palette))
 ```
 
-The animated gradient's travel, speed, and contrast are fixed. Reduce Motion holds it still; there is no per-app intensity to set.
+The animated gradient's travel, speed, and contrast are fixed. Reduce Motion holds it still, and it stops drawing while its window is inactive, such as a Mac sheet whose app is behind another; there is no per-app intensity to set.
 
 Reduce Transparency or Increase Contrast replaces either built-in gradient with the opaque
 system surface.

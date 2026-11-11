@@ -181,8 +181,8 @@ public struct ReleaseBackground: Sendable {
 
     /// A slowly drifting full-surface gradient, rendered in a `Canvas`.
     ///
-    /// Adapts its tones to the color scheme, and becomes static automatically when Reduce Motion is
-    /// enabled — no extra handling needed at the call site.
+    /// Adapts its tones to the color scheme, becomes static automatically when Reduce Motion is
+    /// enabled, and pauses while its window is inactive — no extra handling needed at the call site.
     ///
     /// - Parameters:
     ///   - brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``, then to
@@ -298,10 +298,22 @@ private struct ReleaseAnimatedGradientBackground: View {
     let colorScheme: ColorScheme
     let reduceMotion: Bool
 
+    /// `false` while the window is inactive: a Mac sheet whose app sits behind another, or an iPad
+    /// window that is not the one in use.
+    @Environment(\.appearsActive) private var appearsActive
+
     private static let cycleDuration: TimeInterval = 9.35
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: self.reduceMotion)) { timeline in
+        // Reduce Motion pins the phase; an inactive window only stops the clock. Pinning the phase
+        // in the inactive case too would snap the blobs back to their start position and pop when
+        // the person came back. The phase comes from the timeline date instead, so resuming is
+        // seamless: it lands wherever wall-clock time says it should.
+        let paused = ReleaseAnimatedGradientMotion.isPaused(
+            reduceMotion: self.reduceMotion,
+            appearsActive: self.appearsActive)
+
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: paused)) { timeline in
             let phase =
                 self.reduceMotion
                 ? 0
@@ -436,6 +448,12 @@ private enum ReleaseAnimatedGradientRenderer {
 }
 
 enum ReleaseAnimatedGradientMotion {
+    /// Nobody is watching the gradient in an inactive window, so it stops drawing there as well as
+    /// under Reduce Motion.
+    static func isPaused(reduceMotion: Bool, appearsActive: Bool) -> Bool {
+        reduceMotion || !appearsActive
+    }
+
     static func centers(phase: Double, reduceMotion: Bool) -> [CGPoint] {
         let phase = reduceMotion ? 0 : phase
         let travel: Double = reduceMotion ? 0 : 1

@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - `ReleaseVersionTracker.hasLaunchedBefore`, a read-only view of the first-launch state, and `recordFirstLaunch()`, the write `shouldShowRelease()` performs on a fresh install. Apps no longer need to read the tracker's key by name or call `shouldShowRelease()` only to seed state. Both UserDefaults keys are unchanged.
 
+### Changed
+
+- `.animatedGradient()` pauses while its window is inactive, as GreetKit's does. It used to keep redrawing at 30 fps behind another app for as long as a Mac sheet was left open. It resumes where wall-clock time puts it, without a jump.
+
 ### Fixed
 
 - Backgrounds fill the whole sheet. The background sat inside the view's clip, which cut it off at the safe area, so on an iPhone a gradient or custom background ended in a flat band under the footer button. It is now drawn behind the clip, as GreetKit does, and reaches the sheet's edges; the footer and the fade above it are unchanged.
