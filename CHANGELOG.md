@@ -18,6 +18,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - At accessibility text sizes the sheet drops the app icon and moves the notice from the pinned footer to the end of the scrolling rows. The icon is decorative and was scaled with the text until it filled most of the first screen, and a notice pinned above the button held the footer open over the rows; at the largest sizes barely one row was visible. An app that strips its icon and notice at those sizes can stop.
 - `.animatedGradient()` pauses while its window is inactive, as GreetKit's does. It used to keep redrawing at 30 fps behind another app for as long as a Mac sheet was left open. It resumes where wall-clock time puts it, without a jump.
 
+### Maintenance
+
+- CI drops the Xcode 26.6 leg and runs tests and the format lint on the Xcode 27.0 image only. The lint used to run on the 26.6 leg, so it moves to the remaining one. The deployment minimum stays iOS 26 / macOS 26.
+
 ### Removed
 
 - **Breaking:** the `ReleaseStyle` color roles `titleColor`, `featureIconColor`, `featureTitleColor`, `featureDescriptionColor`, `noticeColor`, and `buttonForegroundColor`. No app set any of them. `ReleaseStyle(tint:)` is what remains; text uses the system's primary and secondary colors and the button label the system's prominent-button color.

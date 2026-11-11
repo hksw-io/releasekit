@@ -291,11 +291,12 @@ and a macOS window.
 ## OS 27 compatibility
 
 The deployment minimum remains iOS 26 / macOS 26, with Swift tools 6.2. CI runs package tests
-on macOS and iOS Simulator with Xcode 26.6 and the Xcode 27.0 preview image. Each job selects
-its toolchain and runtime generation explicitly; the 27 image is maintained by GitHub as
-[`xcode-27`](https://github.com/actions/runner-images/issues/14404). New SDK-only APIs must
-preserve the existing deployment and compiler minimums. Local SDK 27.2 validation complements
-these jobs; a local pass does not establish the result of a hosted CI run.
+on macOS and iOS Simulator, and the format lint, with the Xcode 27.0 image, which GitHub
+maintains as [`xcode-27`](https://github.com/actions/runner-images/issues/14404). The job
+selects its toolchain and runtime generation explicitly. Nothing in CI builds with an Xcode 26
+toolchain or runs on an OS 26 runtime any more, so new SDK-only APIs must be checked against
+the deployment minimum by hand. Local SDK 27.2 validation complements the job; a local pass
+does not establish the result of a hosted CI run.
 
 ## License
 
