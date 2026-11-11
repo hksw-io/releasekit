@@ -5,12 +5,24 @@ import Testing
 
 @MainActor
 struct ReleaseViewBuildTest {
+    /// Matches GreetKit: native dismissal gestures are allowed unless the caller opts out.
     @Test
-    func interactiveDismissalIsOptIn() {
-        #expect(!ReleaseView(content: MinimalContent(), onDismiss: {}).allowsInteractiveDismissal)
+    func interactiveDismissalIsOptOut() {
+        #expect(ReleaseView(content: MinimalContent(), onContinue: {}).allowsInteractiveDismissal)
         #expect(
-            ReleaseView(content: MinimalContent(), allowsInteractiveDismissal: true, onDismiss: {})
+            !ReleaseView(content: MinimalContent(), allowsInteractiveDismissal: false, onContinue: {})
                 .allowsInteractiveDismissal)
+    }
+
+    /// The button and the Mac Escape shortcut both run the closure the caller passed.
+    @Test
+    func continueClosureIsTheOneTheCallerPassed() {
+        var calls = 0
+        let view = ReleaseView(content: MinimalContent()) { calls += 1 }
+
+        view.onContinue()
+
+        #expect(calls == 1)
     }
 
     @Test
@@ -26,12 +38,12 @@ struct ReleaseViewBuildTest {
     /// carries it exactly as well as the fifteen near-identical ones that used to live here.
     @Test
     func viewConstructsAcrossContentAndBackgroundVariants() {
-        _ = ReleaseView(content: MinimalContent(), onDismiss: {})
-        _ = ReleaseView(content: PublicContent(), onDismiss: {})
-        _ = ReleaseView(content: LongContent(), onDismiss: {})
-        _ = ReleaseView(content: StyledContent(), onDismiss: {})
+        _ = ReleaseView(content: MinimalContent(), onContinue: {})
+        _ = ReleaseView(content: PublicContent(), onContinue: {})
+        _ = ReleaseView(content: LongContent(), onContinue: {})
+        _ = ReleaseView(content: StyledContent(), onContinue: {})
             .releaseStyle(.standard)
-        _ = ReleaseView(content: StyledContent(), onDismiss: {})
+        _ = ReleaseView(content: StyledContent(), onContinue: {})
             .releaseStyle(ReleaseStyle(tint: .indigo))
 
         let backgrounds: [ReleaseBackground] = [
@@ -52,7 +64,7 @@ struct ReleaseViewBuildTest {
         ]
 
         for background in backgrounds {
-            _ = ReleaseView(content: StyledContent(), onDismiss: {})
+            _ = ReleaseView(content: StyledContent(), onContinue: {})
                 .releaseBackground(background)
         }
     }

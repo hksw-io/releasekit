@@ -5,14 +5,15 @@ import SwiftUI
 /// with an optional notice and a dismiss button.
 ///
 /// Supply the copy through a ``ReleaseContent`` conformer and present it however the app prefers —
-/// usually a sheet. Dismissal stays with the caller through `onDismiss`; the view never dismisses
-/// itself. Interactive dismissal is disabled by default. Return activates the button on both
-/// platforms, and on macOS Escape runs `onDismiss` too. Record presentation completion using the
-/// presenting sheet's `onDismiss`, which also covers gestures and programmatic dismissal.
+/// usually a sheet. The view never dismisses itself: the button calls `onContinue`, and the caller
+/// closes the presentation there. Return activates the button on both platforms, and on macOS
+/// Escape runs `onContinue` too. Native dismissal gestures are allowed by default and do not run
+/// `onContinue`, so record that the sheet was seen in the presenting sheet's `onDismiss`, which
+/// covers the button, gestures, and programmatic dismissal alike.
 ///
 /// ```swift
 /// ContentView()
-///     .sheet(isPresented: $isShowing) {
+///     .sheet(isPresented: $isShowing, onDismiss: tracker.markAsShown) {
 ///         ReleaseView(content: MyRelease()) {
 ///             isShowing = false
 ///         }
@@ -29,7 +30,7 @@ import SwiftUI
 /// Pair with ``ReleaseVersionTracker`` to decide when to present.
 public struct ReleaseView<Content: ReleaseContent>: View {
     let content: Content
-    let onDismiss: () -> Void
+    let onContinue: () -> Void
     let allowsInteractiveDismissal: Bool
     private var background: ReleaseBackground = .system
     private var style: ReleaseStyle = .standard
@@ -61,16 +62,19 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     ///
     /// - Parameters:
     ///   - content: The copy and icon to present.
-    ///   - allowsInteractiveDismissal: Allows native dismissal gestures. Defaults to `false` for compatibility.
-    ///   - onDismiss: Requests dismissal from the footer or Escape. The caller owns dismissal; use
-    ///     the presenting sheet's `onDismiss` to observe every completed dismissal.
+    ///   - allowsInteractiveDismissal: Allows native dismissal gestures, such as swiping the sheet
+    ///     down. Defaults to `true`, as in GreetKit. Pass `false` to make the button, and Escape on
+    ///     macOS, the only way out.
+    ///   - onContinue: Runs when the footer button is activated or, on macOS, Escape is pressed.
+    ///     Close the presentation here. It does not run for a dismissal gesture; use the
+    ///     presenting sheet's `onDismiss` to observe every completed dismissal.
     public init(
         content: Content,
-        allowsInteractiveDismissal: Bool = false,
-        onDismiss: @escaping () -> Void
+        allowsInteractiveDismissal: Bool = true,
+        onContinue: @escaping () -> Void
     ) {
         self.content = content
-        self.onDismiss = onDismiss
+        self.onContinue = onContinue
         self.allowsInteractiveDismissal = allowsInteractiveDismissal
     }
 
@@ -132,7 +136,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         .safeAreaBar(edge: .bottom) {
             ReleaseFooterSection(
                 content: self.content,
-                onDismiss: self.onDismiss
+                onContinue: self.onContinue
             )
             .frame(maxWidth: Tokens.Layout.contentMaxWidth)
             .padding(.horizontal, self.horizontalPadding)
@@ -343,7 +347,7 @@ private struct ReleaseFeatureRow: View {
 
 private struct ReleaseFooterSection<Content: ReleaseContent>: View {
     let content: Content
-    let onDismiss: () -> Void
+    let onContinue: () -> Void
 
     var body: some View {
         VStack(spacing: Tokens.Layout.footerControlSpacing) {
@@ -356,9 +360,9 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
                     .frame(maxWidth: .infinity)
             }
 
-            ReleaseDismissButton(
+            ReleaseContinueButton(
                 label: self.content.buttonText,
-                onDismiss: self.onDismiss)
+                onContinue: self.onContinue)
         }
         .padding(.top, Tokens.Layout.footerTopPadding)
         .padding(.bottom, Tokens.Layout.footerBottomPadding)
@@ -371,13 +375,13 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
 /// as a Mac sheet's bottom-trailing default button — so it spans the footer on macOS too.
 /// `.buttonSizing(.flexible)` does the spanning, rather than stretching the label inside it. The
 /// system button style supplies press, hover, focus, and contrast behavior on both platforms.
-private struct ReleaseDismissButton: View {
+private struct ReleaseContinueButton: View {
     let label: Text
-    let onDismiss: () -> Void
+    let onContinue: () -> Void
 
     var body: some View {
         Button {
-            self.onDismiss()
+            self.onContinue()
         } label: {
             self.label
                 .multilineTextAlignment(.center)
@@ -396,12 +400,12 @@ private struct ReleaseDismissButton: View {
     }
 
     #if os(macOS)
-    /// Escape is the Mac's cancel gesture. The sheet cannot be allowed to dismiss itself — that
-    /// bypasses `onDismiss` and leaves the caller's bookkeeping unrun — so Escape is bound to the
-    /// same closure as the button. `onExitCommand` does not reach a sheet's content, and a button
-    /// carries only one shortcut, so the binding lives on a zero-sized companion button.
+    /// Escape is the Mac's cancel gesture. The view never dismisses itself — the caller owns the
+    /// presentation — so Escape is bound to the same closure as the button. `onExitCommand` does
+    /// not reach a sheet's content, and a button carries only one shortcut, so the binding lives on
+    /// a zero-sized companion button.
     private var escapeShortcut: some View {
-        Button("", action: self.onDismiss)
+        Button("", action: self.onContinue)
             .keyboardShortcut(.cancelAction)
             .frame(width: 0, height: 0)
             .opacity(0)
@@ -464,16 +468,16 @@ private struct LongReleasePreviewContent: ReleaseContent {
 }
 
 #Preview("What's New") {
-    ReleaseView(content: ReleasePreviewContent(), onDismiss: {})
+    ReleaseView(content: ReleasePreviewContent(), onContinue: {})
 }
 
 #Preview("What's New Long Narrow") {
-    ReleaseView(content: LongReleasePreviewContent(), onDismiss: {})
+    ReleaseView(content: LongReleasePreviewContent(), onContinue: {})
         .frame(width: 320, height: 720)
 }
 
 #Preview("What's New Dark Accessibility") {
-    ReleaseView(content: LongReleasePreviewContent(), onDismiss: {})
+    ReleaseView(content: LongReleasePreviewContent(), onContinue: {})
         .frame(width: 390, height: 760)
         .preferredColorScheme(.dark)
         .dynamicTypeSize(.accessibility2)

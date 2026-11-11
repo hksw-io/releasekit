@@ -37,7 +37,7 @@ On iPad the same sheet presents as a centered card. Its size comes from the pres
   <img src="Docs/Media/releasekit-ipad-dark.jpg" alt="The release sheet on iPad in dark mode with the system background, presented as a centered card." width="300">
 </p>
 
-On macOS it is a resizable window with the platform's overlay scroller, and Escape runs `onDismiss`:
+On macOS it is a resizable window with the platform's overlay scroller, and Escape runs `onContinue`:
 
 <p>
   <img src="Docs/Media/releasekit-mac-gradient.png" alt="The release sheet on macOS in light mode with the animated gradient background, shown as a sheet in a window with an overlay scroller." width="300">
@@ -160,8 +160,8 @@ The sheet is one API with two deliberately different presentations. Apart from i
 | | iOS | macOS |
 |---|---|---|
 | Return | Activates the button | Activates the button |
-| Escape | — | Runs the view's `onDismiss` |
-| Swipe to dismiss | Off; on with `allowsInteractiveDismissal: true` | — |
+| Escape | — | Runs the view's `onContinue` |
+| Swipe to dismiss | On; off with `allowsInteractiveDismissal: false` | — |
 | Scroll indicator | Hidden | Normal overlay scroller |
 | Sheet size | Set by the presentation | 560×520 ideal, 480×420 floor |
 | Reveal motion | 38pt travel | 20pt travel, leads sooner |
@@ -170,7 +170,7 @@ Under Reduce Motion the rows appear without the reveal.
 
 The footer button is a full-width prominent capsule on both platforms. The sheet is a single-action surface, so the button reads as the end of the content rather than as a Mac sheet's bottom-trailing default button. Both platforms use the system prominent button style, so press, hover, focus, and Increase Contrast behavior come from the platform rather than from anything this package draws.
 
-On macOS, Escape calls the view's `onDismiss` closure, the same one the button calls, instead of dismissing the sheet natively. Interactive dismissal is off by default, so on both platforms the user leaves through that closure. With `allowsInteractiveDismissal: true`, an iOS swipe closes the sheet without calling it, and programmatic dismissal skips it in either mode. Record acknowledgement (`ReleaseVersionTracker.markAsShown()`) in the presenting `.sheet(onDismiss:)`, which runs after every dismissal. See [Version tracking](#version-tracking).
+On macOS, Escape calls the view's `onContinue` closure, the same one the button calls, instead of dismissing the sheet natively. Interactive dismissal is on by default, as in GreetKit, so an iOS swipe closes the sheet without calling `onContinue`, and programmatic dismissal skips it too. Record acknowledgement (`ReleaseVersionTracker.markAsShown()`) in the presenting `.sheet(onDismiss:)`, which runs after every dismissal. Pass `allowsInteractiveDismissal: false` to make the button, and Escape on a Mac, the only way out. See [Version tracking](#version-tracking).
 
 Text in the title and feature rows is selectable, which Mac users expect of a window they may want to copy out of.
 
@@ -230,22 +230,23 @@ The package bundles `PrivacyInfo.xcprivacy` for app-local (`CA92.1`) and same-Ap
 and use an app-specific prefix. ReleaseKit does not collect data or perform tracking. Preserve
 the Swift package resource bundle when embedding the library and verify the manifest in your archive.
 
-`ReleaseView`'s `onDismiss` is a request. The button and the Mac Escape shortcut call it, and
-your code updates the presentation state; it does not run when the sheet closes any other way.
-To record acknowledgement, use the presentation's own `onDismiss`, which runs after every
-dismissal. With that in place, an informational sheet can also allow native dismissal gestures:
+`ReleaseView`'s `onContinue` runs for the button and the Mac Escape shortcut, and your code
+closes the presentation there; it does not run when the sheet closes any other way. Native
+dismissal gestures are allowed by default, so record acknowledgement in the presentation's own
+`onDismiss`, which runs after every dismissal:
 
 ```swift
 .sheet(isPresented: $isShowing, onDismiss: tracker.markAsShown) {
-    ReleaseView(content: MyRelease(), allowsInteractiveDismissal: true) {
+    ReleaseView(content: MyRelease()) {
         isShowing = false
     }
 }
 ```
 
-The default stays `false` for source and behavior compatibility. With the presentation callback
-recording acknowledgement, the button closure only needs to set `isShowing = false`; marking
-there as well is redundant but harmless.
+With the presentation callback recording acknowledgement, the button closure only needs to set
+`isShowing = false`. If you record it in `onContinue` instead, pass
+`allowsInteractiveDismissal: false`; otherwise a swipe leaves the release unacknowledged and
+the sheet comes back on the next launch.
 
 ## Local development
 

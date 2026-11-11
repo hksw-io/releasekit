@@ -12,6 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- **Breaking:** `ReleaseView`'s `onDismiss` parameter is now `onContinue`. It only ever ran for the footer button and the Mac Escape shortcut, never for a swipe or a programmatic dismissal, and the old name suggested otherwise. Call sites using a trailing closure compile unchanged; a labeled `onDismiss:` needs renaming.
+- **Breaking:** `allowsInteractiveDismissal` defaults to `true`, matching GreetKit. A swipe now closes the sheet without running `onContinue`, so an app that records `markAsShown()` in that closure must move it to the presenting sheet's `onDismiss`, or pass `allowsInteractiveDismissal: false` to keep the old behavior.
 - `.animatedGradient()` pauses while its window is inactive, as GreetKit's does. It used to keep redrawing at 30 fps behind another app for as long as a Mac sheet was left open. It resumes where wall-clock time puts it, without a jump.
 
 ### Removed
