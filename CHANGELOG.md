@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-11-11
+
 ### Added
 
 - `ReleaseVersionTracker.hasLaunchedBefore`, a read-only view of the first-launch state, and `recordFirstLaunch()`, the write `shouldShowRelease()` performs on a fresh install. Apps no longer need to read the tracker's key by name or call `shouldShowRelease()` only to seed state. Both UserDefaults keys are unchanged.
@@ -135,6 +137,7 @@ First tagged release. Everything before this was consumed off the `master` branc
 
 - Replaced the deprecated `ScrollView(_:showsIndicators:)` initializer, and removed a duplicate `scrollIndicators` modifier, an inert `controlSize` under `buttonStyle(.plain)`, and a redundant single-child `ZStack` in the footer overlay.
 
+[3.2.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/3.2.0
 [3.1.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/3.1.0
 [3.0.0]: https://github.com/hksw-io/ReleaseKit/releases/tag/3.0.0
 [2.0.2]: https://github.com/hksw-io/ReleaseKit/releases/tag/2.0.2

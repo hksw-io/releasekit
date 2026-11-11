@@ -52,7 +52,7 @@ On macOS it is a resizable window with the platform's overlay scroller, and Esca
 ## Installation
 
 ```swift
-.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "3.1.0")
+.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "3.2.0")
 ```
 
 Or in Xcode: **File > Add Package Dependencies** and enter the URL above.
