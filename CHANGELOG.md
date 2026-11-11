@@ -14,6 +14,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - `.animatedGradient()` pauses while its window is inactive, as GreetKit's does. It used to keep redrawing at 30 fps behind another app for as long as a Mac sheet was left open. It resumes where wall-clock time puts it, without a jump.
 
+### Removed
+
+- **Breaking:** the `ReleaseStyle` color roles `titleColor`, `featureIconColor`, `featureTitleColor`, `featureDescriptionColor`, `noticeColor`, and `buttonForegroundColor`. No app set any of them. `ReleaseStyle(tint:)` is what remains; text uses the system's primary and secondary colors and the button label the system's prominent-button color.
+- **Breaking:** `ReleaseGradientPalette`, and the `palette:` parameter on `.softGradient(brand:palette:)` and `.animatedGradient(brand:palette:)`. No app passed one. The gradients still derive their tones from `brand:` or the style tint; draw exact colors in a `.custom` background.
+
 ### Fixed
 
 - Backgrounds fill the whole sheet. The background sat inside the view's clip, which cut it off at the safe area, so on an iPhone a gradient or custom background ended in a flat band under the footer button. It is now drawn behind the clip, as GreetKit does, and reaches the sheet's edges; the footer and the fade above it are unchanged.

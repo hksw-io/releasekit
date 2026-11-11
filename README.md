@@ -114,34 +114,24 @@ ReleaseView(content: MyRelease()) {
 Built-in options:
 
 - `.system` — the default platform background.
-- `.softGradient` / `.softGradient(brand:palette:)` — a restrained brand-derived background tuned for readable content.
-- `.animatedGradient(brand:palette:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, automatically becomes static when Reduce Motion is enabled, and pauses while its window is inactive.
+- `.softGradient` / `.softGradient(brand:)` — a restrained brand-derived background tuned for readable content.
+- `.animatedGradient(brand:)` — an opt-in smooth full-surface animated gradient. It uses the style tint by default, adapts its tones for light and dark mode, automatically becomes static when Reduce Motion is enabled, and pauses while its window is inactive.
 - `.custom { context in ... }` — a fully custom SwiftUI background, including a plain `LinearGradient` of your own colors. Use `context.reduceMotion`, `context.reduceTransparency`, `context.colorSchemeContrast`, `context.brandColor`, and `context.colorScheme` to keep custom backgrounds consistent and accessible.
 
 Every background fills the whole sheet, including `.system`: it runs behind the pinned footer and button and on past the safe area to the sheet's edges. macOS shows its normal overlay scroller, which is how a Mac signals that a list continues; iOS hides the indicator and lets the content fade out at the footer instead.
 
-`ReleaseStyle.tint` is the default brand color for `.softGradient` and `.animatedGradient()`, falling back to blue when no tint is set. The supporting tones are that same color washed toward the platform surface, so the field reads as one color family rather than as unrelated hues — and because the surface is light in light mode and dark in dark mode, the same wash lifts the palette in one and deepens it in the other.
+`ReleaseStyle.tint` is the default brand color for `.softGradient` and `.animatedGradient()`, falling back to blue when no tint is set. The supporting tones are that same color washed toward the platform surface, so the field reads as one color family rather than as unrelated hues — and because the surface is light in light mode and dark in dark mode, the same wash lifts the tones in one and deepens them in the other.
 
-Pass `brand:` when the background should use a different brand color from the controls, or pass a full palette when an app needs exact light and dark tones:
+Pass `brand:` when the background should use a different brand color from the controls:
 
 ```swift
-let palette = ReleaseGradientPalette(
-    light: .init(
-        base: .white,
-        primary: .pink,
-        secondary: .orange,
-        accent: .yellow),
-    dark: .init(
-        base: .black,
-        primary: .pink,
-        secondary: .purple,
-        accent: .cyan))
-
 ReleaseView(content: MyRelease()) {
     isShowing = false
 }
-.releaseBackground(.animatedGradient(palette: palette))
+.releaseBackground(.animatedGradient(brand: .pink))
 ```
+
+For exact colors of your own, draw them in a `.custom` background.
 
 The animated gradient's travel, speed, and contrast are fixed. Reduce Motion holds it still, and it stops drawing while its window is inactive, such as a Mac sheet whose app is behind another; there is no per-app intensity to set.
 
@@ -152,23 +142,16 @@ ReleaseKit keeps the footer pinned, sized to its own content. Rows fade out over
 
 ## Styling
 
-Use `releaseStyle(_:)` to override foreground, tint, and button colors while keeping the library's layout, typography, and motion:
+Use `releaseStyle(_:)` to set the sheet's tint while keeping the library's layout, typography, and motion:
 
 ```swift
 ReleaseView(content: MyRelease()) {
     isShowing = false
 }
-.releaseStyle(ReleaseStyle(
-    tint: .indigo,
-    titleColor: .primary,
-    featureIconColor: .mint,
-    featureDescriptionColor: .secondary,
-    noticeColor: .secondary))
+.releaseStyle(ReleaseStyle(tint: .indigo))
 ```
 
-`ReleaseBackground` controls the surface behind the sheet content. `ReleaseStyle` controls the foreground roles: `titleColor`, `featureIconColor`, `featureTitleColor`, `featureDescriptionColor`, `noticeColor`, and `buttonForegroundColor`. Any color you leave as `nil` uses the standard system treatment. `tint` controls the prominent button accent and is also used by feature icons unless `featureIconColor` is set.
-
-`buttonForegroundColor` is left out of the example on purpose. Its default is the system's prominent-button label color, which already adapts to your tint, to light and dark mode, and to Increase Contrast — setting it to a fixed color usually costs you contrast somewhere.
+`tint` colors the prominent button and the feature icons, and is the default brand color for the gradient backgrounds. Left `nil`, the sheet keeps the tint it inherits. Text uses the system's primary and secondary colors, and the button label uses the system's prominent-button label color, which already adapts to your tint, to light and dark mode, and to Increase Contrast. `ReleaseBackground` controls the surface behind the content.
 
 ## Platform behavior
 

@@ -26,32 +26,20 @@ struct ReleaseViewBuildTest {
     /// carries it exactly as well as the fifteen near-identical ones that used to live here.
     @Test
     func viewConstructsAcrossContentAndBackgroundVariants() {
-        let palette = ReleaseGradientPalette(
-            light: .init(base: .white, primary: .pink, secondary: .orange, accent: .yellow),
-            dark: .init(base: .black, primary: .purple, secondary: .blue, accent: .mint))
-
         _ = ReleaseView(content: MinimalContent(), onDismiss: {})
         _ = ReleaseView(content: PublicContent(), onDismiss: {})
         _ = ReleaseView(content: LongContent(), onDismiss: {})
         _ = ReleaseView(content: StyledContent(), onDismiss: {})
             .releaseStyle(.standard)
         _ = ReleaseView(content: StyledContent(), onDismiss: {})
-            .releaseStyle(
-                ReleaseStyle(
-                    tint: .indigo,
-                    titleColor: .primary,
-                    featureIconColor: .mint,
-                    featureTitleColor: .primary,
-                    featureDescriptionColor: .secondary,
-                    noticeColor: .secondary,
-                    buttonForegroundColor: .white))
+            .releaseStyle(ReleaseStyle(tint: .indigo))
 
         let backgrounds: [ReleaseBackground] = [
             .system,
             .softGradient,
             .softGradient(brand: .orange),
             .animatedGradient(),
-            .animatedGradient(palette: palette),
+            .animatedGradient(brand: .pink),
             .custom { context in
                 LinearGradient(
                     colors: [
@@ -69,26 +57,31 @@ struct ReleaseViewBuildTest {
         }
     }
 
-    @Test
-    func styleKeepsButtonLabelColorOptional() {
-        #expect(ReleaseStyle(tint: .indigo).buttonForegroundColor == nil)
-        #expect(ReleaseStyle(buttonForegroundColor: .white).buttonForegroundColor == .white)
-    }
-
     /// Supporting tones used to be fixed hues — `.cyan` and `.mint` regardless of brand — so the
     /// field read as three unrelated colours. They are now washed from the brand itself.
     @Test
-    func gradientPaletteDerivesSupportingTonesFromTheBrand() {
-        let red = ReleaseGradientPalette.brand(.red)
-        let blue = ReleaseGradientPalette.brand(.blue)
+    func gradientTonesDeriveSupportingTonesFromTheBrand() {
+        for scheme in [ColorScheme.light, .dark] {
+            let red = ReleaseGradientTones(brand: .red, colorScheme: scheme)
+            let blue = ReleaseGradientTones(brand: .blue, colorScheme: scheme)
 
-        #expect(red.light.secondary != blue.light.secondary)
-        #expect(red.light.accent != blue.light.accent)
-        #expect(red.dark.secondary != blue.dark.secondary)
-        #expect(red.dark.accent != blue.dark.accent)
+            #expect(red.primary == Color.red)
+            #expect(red.secondary != blue.secondary)
+            #expect(red.accent != blue.accent)
+            #expect(red.secondary != Color.cyan)
+            #expect(red.accent != Color.mint)
+        }
+    }
 
-        #expect(red.light.secondary != Color.cyan)
-        #expect(red.light.accent != Color.mint)
+    /// An explicit brand wins over the style tint, which wins over blue.
+    @Test
+    func gradientBrandFallsBackToTheStyleTintThenBlue() {
+        let tinted = ReleaseBackgroundContext(reduceMotion: false, brandColor: .pink)
+        let untinted = ReleaseBackgroundContext(reduceMotion: false)
+
+        #expect(tinted.tones(brand: .orange).primary == Color.orange)
+        #expect(tinted.tones(brand: nil).primary == Color.pink)
+        #expect(untinted.tones(brand: nil).primary == Color.blue)
     }
 
     @Test

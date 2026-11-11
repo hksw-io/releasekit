@@ -1,80 +1,32 @@
 #if os(iOS) || os(macOS)
 import SwiftUI
 
-/// Foreground colors for the release sheet: title, feature rows, notice, and button text.
+/// The accent color for the release sheet.
 ///
-/// Every property is optional, and `nil` means "use the standard system treatment" rather than
-/// "use no color". Set only the roles an app needs to brand; the rest stay adaptive across light
-/// and dark mode. Layout, typography, and motion are not configurable.
+/// `tint` colors the button and the feature icons, and is the default brand color for the gradient
+/// backgrounds. Text colors, layout, typography, and motion use the standard system treatment and
+/// are not configurable.
 ///
 /// ```swift
 /// ReleaseView(content: MyRelease()) { isShowing = false }
 ///     .releaseStyle(ReleaseStyle(tint: .indigo))
 /// ```
 ///
-/// Use ``ReleaseBackground`` for the surface behind the content; this type governs what sits on top
-/// of it.
+/// Use ``ReleaseBackground`` for the surface behind the content.
 public struct ReleaseStyle: Equatable, Sendable {
-    /// Accent color for the button background, and for feature icons unless ``featureIconColor``
-    /// overrides them. Also the default brand color for the gradient backgrounds.
+    /// Accent color for the button and the feature icons, and the default brand color for the
+    /// gradient backgrounds. `nil` keeps the tint the sheet inherits from its environment.
     public var tint: Color?
-    /// Color for the sheet title. `nil` uses the standard primary treatment.
-    public var titleColor: Color?
-    /// Color for feature row icons. `nil` falls back to ``tint``, then to the environment tint.
-    public var featureIconColor: Color?
-    /// Color for feature row headlines. `nil` uses the standard primary treatment.
-    public var featureTitleColor: Color?
-    /// Color for feature row body copy. `nil` uses the secondary treatment.
-    public var featureDescriptionColor: Color?
-    /// Color for the footer notice. `nil` uses the secondary treatment.
-    public var noticeColor: Color?
-    /// Color for the button label. `nil` uses the system's prominent-button label color, which
-    /// already adapts to the tint, to light and dark mode, and to Increase Contrast.
-    public var buttonForegroundColor: Color?
 
-    /// The unbranded style: every role uses its standard system treatment.
+    /// The unbranded style: the inherited tint.
     public static let standard = Self()
 
-    /// Creates a style, overriding only the roles you pass.
+    /// Creates a style.
     ///
-    /// - Parameters:
-    ///   - tint: Button accent, and feature icon color unless `featureIconColor` is set.
-    ///   - titleColor: Title color.
-    ///   - featureIconColor: Feature icon color, overriding `tint`.
-    ///   - featureTitleColor: Feature headline color.
-    ///   - featureDescriptionColor: Feature body copy color.
-    ///   - noticeColor: Footer notice color.
-    ///   - buttonForegroundColor: Button label color.
-    public init(
-        tint: Color? = nil,
-        titleColor: Color? = nil,
-        featureIconColor: Color? = nil,
-        featureTitleColor: Color? = nil,
-        featureDescriptionColor: Color? = nil,
-        noticeColor: Color? = nil,
-        buttonForegroundColor: Color? = nil
-    ) {
+    /// - Parameter tint: Accent color for the button and the feature icons. `nil` keeps the
+    ///   inherited tint.
+    public init(tint: Color? = nil) {
         self.tint = tint
-        self.titleColor = titleColor
-        self.featureIconColor = featureIconColor
-        self.featureTitleColor = featureTitleColor
-        self.featureDescriptionColor = featureDescriptionColor
-        self.noticeColor = noticeColor
-        self.buttonForegroundColor = buttonForegroundColor
-    }
-}
-
-extension ReleaseStyle {
-    var featureIconForegroundStyle: AnyShapeStyle {
-        (self.featureIconColor ?? self.tint).map(AnyShapeStyle.init) ?? AnyShapeStyle(.tint)
-    }
-
-    var featureDescriptionForegroundStyle: AnyShapeStyle {
-        self.featureDescriptionColor.map(AnyShapeStyle.init) ?? AnyShapeStyle(.secondary)
-    }
-
-    var noticeForegroundStyle: AnyShapeStyle {
-        self.noticeColor.map(AnyShapeStyle.init) ?? AnyShapeStyle(.secondary)
     }
 }
 #endif

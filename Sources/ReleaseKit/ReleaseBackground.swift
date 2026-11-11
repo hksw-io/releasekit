@@ -43,93 +43,39 @@ public struct ReleaseBackgroundContext: Sendable {
         self.colorSchemeContrast = colorSchemeContrast
     }
 
-    /// The tones a gradient background should draw with: an explicit palette wins, then an explicit
-    /// brand color, then the style tint, then blue.
-    func tones(brand: Color?, palette: ReleaseGradientPalette?) -> ReleaseGradientPalette.Tones {
-        (palette ?? .brand(brand ?? self.brandColor ?? .blue)).tones(for: self.colorScheme)
+    /// The tones a gradient background should draw with: an explicit brand color wins, then the
+    /// style tint, then blue.
+    func tones(brand: Color?) -> ReleaseGradientTones {
+        ReleaseGradientTones(brand: brand ?? self.brandColor ?? .blue, colorScheme: self.colorScheme)
     }
 }
 
-/// Exact light and dark tones for the gradient backgrounds.
-///
-/// Pass one when brand-derived tones are not close enough; otherwise ``brand(_:)`` derives a full
-/// palette from a single color.
-public struct ReleaseGradientPalette: Equatable, Sendable {
-    /// The four colors a gradient background draws with in one color scheme.
-    public struct Tones: Equatable, Sendable {
-        /// The surface color under the gradient, and the color veiling its edges.
-        public var base: Color
-        /// The dominant gradient color.
-        public var primary: Color
-        /// The second gradient color.
-        public var secondary: Color
-        /// The third gradient color, carrying the least weight.
-        public var accent: Color
+/// The four colors a gradient background draws with in one color scheme.
+struct ReleaseGradientTones: Equatable {
+    /// The surface color under the gradient, and the color veiling its edges.
+    let base: Color
+    /// The dominant gradient color.
+    let primary: Color
+    /// The second gradient color.
+    let secondary: Color
+    /// The third gradient color, carrying the least weight.
+    let accent: Color
 
-        /// Creates a set of tones for one color scheme.
-        ///
-        /// - Parameters:
-        ///   - base: Surface color under the gradient.
-        ///   - primary: Dominant gradient color.
-        ///   - secondary: Second gradient color.
-        ///   - accent: Third gradient color.
-        public init(base: Color, primary: Color, secondary: Color, accent: Color) {
-            self.base = base
-            self.primary = primary
-            self.secondary = secondary
-            self.accent = accent
-        }
-    }
-
-    /// Tones used in light mode.
-    public var light: Tones
-    /// Tones used in dark mode.
-    public var dark: Tones
-
-    /// The blue-derived palette used when no brand color or palette is supplied.
-    public static let standard = Self.brand(.blue)
-
-    /// Creates a palette.
-    ///
-    /// Both schemes are required: a saturated palette that reuses its light tones in dark mode does
-    /// not stay readable, so there is no default worth offering.
-    ///
-    /// - Parameters:
-    ///   - light: Tones for light mode.
-    ///   - dark: Tones for dark mode.
-    public init(light: Tones, dark: Tones) {
-        self.light = light
-        self.dark = dark
-    }
-
-    /// Derives a full light and dark palette from a single brand color.
+    /// Derives the tones from a single brand color.
     ///
     /// The brand color becomes `primary`, and the supporting tones are that same color washed
     /// toward the platform surface, so the field reads as one color rather than as three unrelated
     /// hues. Because the surface is light in light mode and dark in dark mode, the same wash lifts
-    /// the palette in one and deepens it in the other.
+    /// the tones in one and deepens them in the other.
     ///
     /// Dark mode washes less: a dark surface swallows chroma faster, so an equal mix would flatten
     /// the supporting tones into the background.
-    ///
-    /// - Parameter brand: The color to build the palette around.
-    /// - Returns: A palette tuned for both color schemes.
-    public static func brand(_ brand: Color) -> Self {
-        Self(
-            light: Tones(
-                base: Tokens.background,
-                primary: brand,
-                secondary: brand.mix(with: Tokens.background, by: 0.30),
-                accent: brand.mix(with: Tokens.background, by: 0.55)),
-            dark: Tones(
-                base: Tokens.background,
-                primary: brand,
-                secondary: brand.mix(with: Tokens.background, by: 0.22),
-                accent: brand.mix(with: Tokens.background, by: 0.42)))
-    }
-
-    func tones(for colorScheme: ColorScheme) -> Tones {
-        colorScheme == .dark ? self.dark : self.light
+    init(brand: Color, colorScheme: ColorScheme) {
+        let isDark = colorScheme == .dark
+        self.base = Tokens.background
+        self.primary = brand
+        self.secondary = brand.mix(with: Tokens.background, by: isDark ? 0.22 : 0.30)
+        self.accent = brand.mix(with: Tokens.background, by: isDark ? 0.42 : 0.55)
     }
 }
 
@@ -144,13 +90,12 @@ public struct ReleaseGradientPalette: Equatable, Sendable {
 ///     .releaseStyle(ReleaseStyle(tint: .indigo))
 /// ```
 ///
-/// The gradient options take their brand color from ``ReleaseStyle/tint`` unless you pass `brand:`
-/// or a full `palette:`. Use ``ReleaseStyle`` for the colors on top of this surface.
+/// The gradient options take their brand color from ``ReleaseStyle/tint`` unless you pass `brand:`.
 public struct ReleaseBackground: Sendable {
     enum Storage: Sendable {
         case system
-        case softGradient(brand: Color?, palette: ReleaseGradientPalette?)
-        case animatedGradient(brand: Color?, palette: ReleaseGradientPalette?)
+        case softGradient(brand: Color?)
+        case animatedGradient(brand: Color?)
         case custom(@Sendable @MainActor (ReleaseBackgroundContext) -> AnyView)
     }
 
@@ -161,22 +106,17 @@ public struct ReleaseBackground: Sendable {
 
     /// A restrained brand-derived gradient, tuned to keep content readable.
     ///
-    /// Uses ``ReleaseStyle/tint`` as its brand color. Use ``softGradient(brand:palette:)`` to
-    /// override that.
-    public static let softGradient = Self(storage: .softGradient(brand: nil, palette: nil))
+    /// Uses ``ReleaseStyle/tint`` as its brand color. Use ``softGradient(brand:)`` to override
+    /// that.
+    public static let softGradient = Self(storage: .softGradient(brand: nil))
 
-    /// A restrained brand-derived gradient with an explicit brand color or palette.
+    /// A restrained brand-derived gradient with an explicit brand color.
     ///
-    /// - Parameters:
-    ///   - brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``, then to
-    ///     blue.
-    ///   - palette: Exact light and dark tones. Takes precedence over `brand` when both are given.
+    /// - Parameter brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``,
+    ///   then to blue.
     /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
-    public static func softGradient(
-        brand: Color? = nil,
-        palette: ReleaseGradientPalette? = nil
-    ) -> Self {
-        Self(storage: .softGradient(brand: brand, palette: palette))
+    public static func softGradient(brand: Color? = nil) -> Self {
+        Self(storage: .softGradient(brand: brand))
     }
 
     /// A slowly drifting full-surface gradient, rendered in a `Canvas`.
@@ -184,16 +124,11 @@ public struct ReleaseBackground: Sendable {
     /// Adapts its tones to the color scheme, becomes static automatically when Reduce Motion is
     /// enabled, and pauses while its window is inactive — no extra handling needed at the call site.
     ///
-    /// - Parameters:
-    ///   - brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``, then to
-    ///     blue.
-    ///   - palette: Exact light and dark tones. Takes precedence over `brand` when both are given.
+    /// - Parameter brand: Brand color for the gradient. `nil` falls back to ``ReleaseStyle/tint``,
+    ///   then to blue.
     /// - Returns: A background you can pass to ``ReleaseView/releaseBackground(_:)``.
-    public static func animatedGradient(
-        brand: Color? = nil,
-        palette: ReleaseGradientPalette? = nil
-    ) -> Self {
-        Self(storage: .animatedGradient(brand: brand, palette: palette))
+    public static func animatedGradient(brand: Color? = nil) -> Self {
+        Self(storage: .animatedGradient(brand: brand))
     }
 
     /// A fully custom SwiftUI background.
@@ -235,15 +170,15 @@ extension ReleaseBackground {
             AnyView(Tokens.background)
         case .system:
             AnyView(Tokens.background)
-        case let .softGradient(brand, palette):
+        case let .softGradient(brand):
             AnyView(
                 ReleaseSoftGradientBackground(
-                    tones: context.tones(brand: brand, palette: palette),
+                    tones: context.tones(brand: brand),
                     colorScheme: context.colorScheme))
-        case let .animatedGradient(brand, palette):
+        case let .animatedGradient(brand):
             AnyView(
                 ReleaseAnimatedGradientBackground(
-                    tones: context.tones(brand: brand, palette: palette),
+                    tones: context.tones(brand: brand),
                     colorScheme: context.colorScheme,
                     reduceMotion: context.reduceMotion))
         case let .custom(background):
@@ -253,7 +188,7 @@ extension ReleaseBackground {
 }
 
 private struct ReleaseSoftGradientBackground: View {
-    let tones: ReleaseGradientPalette.Tones
+    let tones: ReleaseGradientTones
     let colorScheme: ColorScheme
 
     var body: some View {
@@ -294,7 +229,7 @@ private struct ReleaseSoftGradientBackground: View {
 }
 
 private struct ReleaseAnimatedGradientBackground: View {
-    let tones: ReleaseGradientPalette.Tones
+    let tones: ReleaseGradientTones
     let colorScheme: ColorScheme
     let reduceMotion: Bool
 
@@ -351,7 +286,7 @@ private enum ReleaseAnimatedGradientRenderer {
     static func draw(
         context: inout GraphicsContext,
         size: CGSize,
-        tones: ReleaseGradientPalette.Tones,
+        tones: ReleaseGradientTones,
         isDark: Bool,
         centers: [CGPoint]
     ) {

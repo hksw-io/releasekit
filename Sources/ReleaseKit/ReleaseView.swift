@@ -25,7 +25,7 @@ import SwiftUI
 /// under Reduce Motion. Layout adapts to compact and regular widths, to Dynamic Type, and to
 /// resizable macOS windows.
 ///
-/// Use ``releaseBackground(_:)`` for the surface and ``releaseStyle(_:)`` for foreground colors.
+/// Use ``releaseBackground(_:)`` for the surface and ``releaseStyle(_:)`` for the tint.
 /// Pair with ``ReleaseVersionTracker`` to decide when to present.
 public struct ReleaseView<Content: ReleaseContent>: View {
     let content: Content
@@ -85,8 +85,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
             VStack(spacing: self.contentSpacing) {
                 ReleaseHeaderSection(
                     content: self.content,
-                    iconSize: self.iconSize,
-                    style: self.style)
+                    iconSize: self.iconSize)
                 VStack(spacing: self.featureSpacing) {
                     ForEach(Array(self.content.features.enumerated()), id: \.element.id) { index, feature in
                         ReleaseFeatureRow(
@@ -94,8 +93,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                             index: index,
                             featureIconSize: self.featureIconSize,
                             featuresVisible: self.featuresVisible,
-                            reduceMotion: self.reduceMotion,
-                            style: self.style)
+                            reduceMotion: self.reduceMotion)
                     }
                 }
             }
@@ -134,7 +132,6 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         .safeAreaBar(edge: .bottom) {
             ReleaseFooterSection(
                 content: self.content,
-                style: self.style,
                 onDismiss: self.onDismiss
             )
             .frame(maxWidth: Tokens.Layout.contentMaxWidth)
@@ -181,10 +178,10 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         return view
     }
 
-    /// Sets the foreground colors for the title, feature rows, notice, and button.
+    /// Sets the tint for the button and the feature icons, which is also the default brand color
+    /// for the gradient backgrounds.
     ///
-    /// - Parameter style: The colors to apply. Any property left `nil` keeps its standard system
-    ///   treatment.
+    /// - Parameter style: The style to apply. A `nil` tint keeps the inherited one.
     /// - Returns: A copy of the view using the given style.
     public func releaseStyle(_ style: ReleaseStyle) -> Self {
         var view = self
@@ -243,7 +240,6 @@ struct ReleaseFooterMask: View {
 private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
     let content: Content
     let iconSize: CGFloat
-    let style: ReleaseStyle
 
     var body: some View {
         VStack(spacing: Tokens.Layout.elementSpacing) {
@@ -265,7 +261,6 @@ private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
             .font(.largeTitle)
                 #endif
                 .fontWeight(.bold)
-                .releaseOptionalForegroundStyle(self.style.titleColor)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
@@ -279,7 +274,6 @@ private struct ReleaseFeatureRow: View {
     let featureIconSize: CGFloat
     let featuresVisible: Bool
     let reduceMotion: Bool
-    let style: ReleaseStyle
 
     var body: some View {
         let delay = Tokens.Motion.revealDelay(for: self.index)
@@ -292,7 +286,7 @@ private struct ReleaseFeatureRow: View {
                     .scaledToFit()
                     .symbolRenderingMode(.hierarchical)
                     .frame(width: self.featureIconSize, height: self.featureIconSize)
-                    .foregroundStyle(self.style.featureIconForegroundStyle)
+                    .foregroundStyle(.tint)
                     .accessibilityHidden(true)
             }
 
@@ -300,12 +294,11 @@ private struct ReleaseFeatureRow: View {
                 if let label = self.feature.label {
                     label
                         .font(.headline)
-                        .releaseOptionalForegroundStyle(self.style.featureTitleColor)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 self.feature.description
                     .font(.subheadline)
-                    .foregroundStyle(self.style.featureDescriptionForegroundStyle)
+                    .foregroundStyle(.secondary)
                     .lineSpacing(3)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -350,7 +343,6 @@ private struct ReleaseFeatureRow: View {
 
 private struct ReleaseFooterSection<Content: ReleaseContent>: View {
     let content: Content
-    let style: ReleaseStyle
     let onDismiss: () -> Void
 
     var body: some View {
@@ -358,7 +350,7 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
             if let notice = self.content.notice {
                 notice.text
                     .font(.subheadline)
-                    .foregroundStyle(self.style.noticeForegroundStyle)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity)
@@ -366,7 +358,6 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
 
             ReleaseDismissButton(
                 label: self.content.buttonText,
-                style: self.style,
                 onDismiss: self.onDismiss)
         }
         .padding(.top, Tokens.Layout.footerTopPadding)
@@ -382,7 +373,6 @@ private struct ReleaseFooterSection<Content: ReleaseContent>: View {
 /// system button style supplies press, hover, focus, and contrast behavior on both platforms.
 private struct ReleaseDismissButton: View {
     let label: Text
-    let style: ReleaseStyle
     let onDismiss: () -> Void
 
     var body: some View {
@@ -392,7 +382,6 @@ private struct ReleaseDismissButton: View {
             self.label
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-                .releaseOptionalForegroundStyle(self.style.buttonForegroundColor)
         }
         .buttonStyle(.glassProminent)
         .buttonBorderShape(.capsule)
@@ -420,17 +409,6 @@ private struct ReleaseDismissButton: View {
     }
     #endif
 
-}
-
-private extension View {
-    @ViewBuilder
-    func releaseOptionalForegroundStyle(_ color: Color?) -> some View {
-        if let color {
-            self.foregroundStyle(color)
-        } else {
-            self
-        }
-    }
 }
 
 private struct ReleasePreviewContent: ReleaseContent {
