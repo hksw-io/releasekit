@@ -67,6 +67,10 @@ struct ReleaseViewBuildTest {
             _ = ReleaseView(content: StyledContent(), onContinue: {})
                 .releaseBackground(background)
         }
+
+        // The accessibility layout drops the icon and moves the notice into the scroll content.
+        _ = ReleaseView(content: LongContent(), onContinue: {})
+            .dynamicTypeSize(.accessibility3)
     }
 
     /// Supporting tones used to be fixed hues — `.cyan` and `.mint` regardless of brand — so the

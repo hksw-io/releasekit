@@ -60,9 +60,10 @@ public struct ReleaseFeature: Identifiable, Equatable, Sendable {
     }
 }
 
-/// A short line of secondary copy shown in the pinned footer, above the dismiss button.
+/// A short line of secondary copy shown in the pinned footer, above the button.
 ///
 /// Typically the catch-all for changes too small to list, such as "Plus many other improvements."
+/// At accessibility text sizes it moves out of the footer and scrolls with the feature rows.
 public struct ReleaseNotice: Equatable, Sendable {
     /// The notice copy.
     public let text: Text
@@ -108,13 +109,14 @@ public struct ReleaseNotice: Equatable, Sendable {
 /// catalog.
 public protocol ReleaseContent: Sendable {
     /// Icon shown above the title, clipped to a rounded rectangle and hidden from VoiceOver.
-    /// Defaults to `nil`.
+    /// Decorative, so it is not shown at accessibility text sizes. Defaults to `nil`.
     var appIcon: Image? { get }
     /// Heading for the sheet, exposed to VoiceOver as a header.
     var title: Text { get }
     /// The rows to list, in display order.
     var features: [ReleaseFeature] { get }
-    /// Secondary footer copy shown above the button. Defaults to `nil`.
+    /// Secondary footer copy shown above the button; at accessibility text sizes it scrolls with
+    /// the rows instead. Defaults to `nil`.
     var notice: ReleaseNotice? { get }
     /// Label for the dismiss button.
     var buttonText: Text { get }

@@ -168,6 +168,8 @@ The sheet is one API with two deliberately different presentations. Apart from i
 
 Under Reduce Motion the rows appear without the reveal.
 
+At accessibility text sizes the sheet gives the room to the words: the app icon, which is decorative, is not shown, and the notice moves out of the pinned footer to the end of the scrolling rows, so only the button stays pinned. Apps do not need to strip either themselves.
+
 The footer button is a full-width prominent capsule on both platforms. The sheet is a single-action surface, so the button reads as the end of the content rather than as a Mac sheet's bottom-trailing default button. Both platforms use the system prominent button style, so press, hover, focus, and Increase Contrast behavior come from the platform rather than from anything this package draws.
 
 On macOS, Escape calls the view's `onContinue` closure, the same one the button calls, instead of dismissing the sheet natively. Interactive dismissal is on by default, as in GreetKit, so an iOS swipe closes the sheet without calling `onContinue`, and programmatic dismissal skips it too. Record acknowledgement (`ReleaseVersionTracker.markAsShown()`) in the presenting `.sheet(onDismiss:)`, which runs after every dismissal. Pass `allowsInteractiveDismissal: false` to make the button, and Escape on a Mac, the only way out. See [Version tracking](#version-tracking).

@@ -2,7 +2,7 @@
 import SwiftUI
 
 /// A "What's New" sheet: an app icon, a title, a scrolling list of features, and a pinned footer
-/// with an optional notice and a dismiss button.
+/// with an optional notice and a button.
 ///
 /// Supply the copy through a ``ReleaseContent`` conformer and present it however the app prefers —
 /// usually a sheet. The view never dismisses itself: the button calls `onContinue`, and the caller
@@ -24,7 +24,8 @@ import SwiftUI
 /// the background runs behind it to the edges of the sheet, past the safe area. Its button spans
 /// the footer on both platforms. Feature rows animate in with a staggered reveal that is suppressed
 /// under Reduce Motion. Layout adapts to compact and regular widths, to Dynamic Type, and to
-/// resizable macOS windows.
+/// resizable macOS windows. At accessibility text sizes the words get the room: the app icon is
+/// dropped and the notice scrolls with the rows, so only the button stays pinned.
 ///
 /// Use ``releaseBackground(_:)`` for the surface and ``releaseStyle(_:)`` for the tint.
 /// Pair with ``ReleaseVersionTracker`` to decide when to present.
@@ -39,6 +40,7 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
@@ -85,10 +87,16 @@ public struct ReleaseView<Content: ReleaseContent>: View {
     /// fade with the rows; inside the clip it stops at the safe area, which left a flat band under
     /// the footer button on an iPhone.
     public var body: some View {
+        // At accessibility text sizes the words need the room. The app icon is decorative and
+        // would scale to fill most of the first screen, and a notice pinned above the button
+        // holds the footer open over the rows — so the icon goes and the notice scrolls.
+        let isAccessibilitySize = self.dynamicTypeSize.isAccessibilitySize
+
         ScrollView(.vertical) {
             VStack(spacing: self.contentSpacing) {
                 ReleaseHeaderSection(
-                    content: self.content,
+                    appIcon: isAccessibilitySize ? nil : self.content.appIcon,
+                    title: self.content.title,
                     iconSize: self.iconSize)
                 VStack(spacing: self.featureSpacing) {
                     ForEach(Array(self.content.features.enumerated()), id: \.element.id) { index, feature in
@@ -99,6 +107,9 @@ public struct ReleaseView<Content: ReleaseContent>: View {
                             featuresVisible: self.featuresVisible,
                             reduceMotion: self.reduceMotion)
                     }
+                }
+                if isAccessibilitySize, let notice = self.content.notice {
+                    ReleaseNoticeText(notice: notice)
                 }
             }
             // Mac users expect to be able to select and copy release copy out of a window.
@@ -135,7 +146,8 @@ public struct ReleaseView<Content: ReleaseContent>: View {
         }
         .safeAreaBar(edge: .bottom) {
             ReleaseFooterSection(
-                content: self.content,
+                notice: isAccessibilitySize ? nil : self.content.notice,
+                buttonText: self.content.buttonText,
                 onContinue: self.onContinue
             )
             .frame(maxWidth: Tokens.Layout.contentMaxWidth)
@@ -241,13 +253,14 @@ struct ReleaseFooterMask: View {
     }
 }
 
-private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
-    let content: Content
+private struct ReleaseHeaderSection: View {
+    let appIcon: Image?
+    let title: Text
     let iconSize: CGFloat
 
     var body: some View {
         VStack(spacing: Tokens.Layout.elementSpacing) {
-            if let appIcon = self.content.appIcon {
+            if let appIcon = self.appIcon {
                 appIcon
                     .resizable()
                     .interpolation(.high)
@@ -258,7 +271,7 @@ private struct ReleaseHeaderSection<Content: ReleaseContent>: View {
                     .accessibilityHidden(true)
             }
 
-            self.content.title
+            self.title
                 #if os(macOS)
             .font(.title)
                 #else
@@ -345,23 +358,34 @@ private struct ReleaseFeatureRow: View {
     }
 }
 
-private struct ReleaseFooterSection<Content: ReleaseContent>: View {
-    let content: Content
+/// The notice copy, wherever it sits: pinned above the button, or at the end of the rows at
+/// accessibility text sizes.
+private struct ReleaseNoticeText: View {
+    let notice: ReleaseNotice
+
+    var body: some View {
+        self.notice.text
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
+    }
+}
+
+private struct ReleaseFooterSection: View {
+    let notice: ReleaseNotice?
+    let buttonText: Text
     let onContinue: () -> Void
 
     var body: some View {
         VStack(spacing: Tokens.Layout.footerControlSpacing) {
-            if let notice = self.content.notice {
-                notice.text
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity)
+            if let notice = self.notice {
+                ReleaseNoticeText(notice: notice)
             }
 
             ReleaseContinueButton(
-                label: self.content.buttonText,
+                label: self.buttonText,
                 onContinue: self.onContinue)
         }
         .padding(.top, Tokens.Layout.footerTopPadding)
