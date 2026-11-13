@@ -1,12 +1,8 @@
 # ReleaseKit
 
-[![CI](https://github.com/hksw-io/ReleaseKit/actions/workflows/ci.yml/badge.svg)](https://github.com/hksw-io/ReleaseKit/actions/workflows/ci.yml)
+[![CI](https://github.com/hksw-io/releasekit/actions/workflows/ci.yml/badge.svg)](https://github.com/hksw-io/releasekit/actions/workflows/ci.yml)
 
 A reusable SwiftUI "What's New" sheet for iOS and macOS apps in the HK Softworks portfolio.
-
-The package and import name is `ReleaseKit`. Public view and content APIs intentionally use the
-domain language `Release...`, for example `ReleaseView`, `ReleaseContent`, and
-`ReleaseVersionTracker`.
 
 ## Preview
 
@@ -52,10 +48,13 @@ On macOS it is a resizable window with the platform's overlay scroller, and Esca
 ## Installation
 
 ```swift
-.package(url: "https://github.com/hksw-io/ReleaseKit.git", from: "3.2.0")
+.package(url: "https://github.com/hksw-io/releasekit.git", exact: "3.2.0")
 ```
 
-Or in Xcode: **File > Add Package Dependencies** and enter the URL above.
+Or in Xcode: **File > Add Package Dependencies**, enter the URL above, and choose **Exact Version** `3.2.0`.
+
+See [CHANGELOG.md](CHANGELOG.md) for what changed between releases. A minor release may contain a
+breaking change, marked **Breaking** there, so pin an exact version.
 
 ## Usage
 
@@ -172,7 +171,7 @@ At accessibility text sizes the sheet gives the room to the words: the app icon,
 
 The footer button is a full-width prominent capsule on both platforms. The sheet is a single-action surface, so the button reads as the end of the content rather than as a Mac sheet's bottom-trailing default button. Both platforms use the system prominent button style, so press, hover, focus, and Increase Contrast behavior come from the platform rather than from anything this package draws.
 
-On macOS, Escape calls the view's `onContinue` closure, the same one the button calls, instead of dismissing the sheet natively. Interactive dismissal is on by default, as in GreetKit, so an iOS swipe closes the sheet without calling `onContinue`, and programmatic dismissal skips it too. Record acknowledgement (`ReleaseVersionTracker.markAsShown()`) in the presenting `.sheet(onDismiss:)`, which runs after every dismissal. Pass `allowsInteractiveDismissal: false` to make the button, and Escape on a Mac, the only way out. See [Version tracking](#version-tracking).
+On macOS, Escape calls the view's `onContinue` closure, the same one the button calls, instead of dismissing the sheet natively. For where to record that the release was seen, see [Version tracking](#version-tracking).
 
 Text in the title and feature rows is selectable, which Mac users expect of a window they may want to copy out of.
 
@@ -276,27 +275,8 @@ Run the package tests from the package root:
 swift test
 ```
 
-Formatting is owned by `swift-format` against the checked-in `.swift-format`:
-
-```sh
-swift format --in-place --recursive Sources Tests
-swift format lint --strict --recursive Sources Tests
-```
-
-Lint runs in CI, and every public declaration must carry a documentation comment.
-
 The README media was captured from the iOS 27.2 Simulator (iPhone 17 Pro, iPad Pro 11-inch)
 and a macOS window.
-
-## OS 27 compatibility
-
-The deployment minimum remains iOS 26 / macOS 26, with Swift tools 6.2. CI runs package tests
-on macOS and iOS Simulator, and the format lint, with the Xcode 27.0 image, which GitHub
-maintains as [`xcode-27`](https://github.com/actions/runner-images/issues/14404). The job
-selects its toolchain and runtime generation explicitly. Nothing in CI builds with an Xcode 26
-toolchain or runs on an OS 26 runtime any more, so new SDK-only APIs must be checked against
-the deployment minimum by hand. Local SDK 27.2 validation complements the job; a local pass
-does not establish the result of a hosted CI run.
 
 ## License
 
