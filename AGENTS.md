@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Instructions for agents working in this repository. RFC 2119 keywords apply.
+Instructions for agents working in this repository.
 
 ## Package Scope
 
@@ -12,12 +12,7 @@ Instructions for agents working in this repository. RFC 2119 keywords apply.
 ## SwiftUI Standards
 
 - Use pure SwiftUI for product UI. Avoid UIKit/AppKit bridging unless there is no native SwiftUI API and the bridge is small, isolated, and explained.
-- Prefer modern Swift and SwiftUI idioms for the declared platform minimums. Do not use deprecated APIs such as `NavigationView`, `navigationBarItems`, `foregroundColor`, old `alert` overloads, or `animation(_:)` without `value:`.
-- Use `Button` for tappable controls. Use gestures only when the gesture semantics matter.
-- Keep view state local and private. Use `@Binding` only when this package intentionally lets the caller own and mutate state.
 - Preserve accessibility in every UI change: VoiceOver labels/grouping, Dynamic Type, reduced motion, sufficient contrast, keyboard/focus behavior where relevant, and light/dark mode.
-- Design layouts to survive small and large iPhones, iPad-style widths, portrait and landscape, and resizable macOS windows. Avoid brittle fixed sizes except for icons, minimums, or platform-specific constants.
-- Use system materials, typography, controls, and symbols in ways that feel native on iOS 26+ and macOS 26+. Do not add custom visual systems unless the user asks for one.
 - Keep public API names, defaults, and initializer behavior stable unless the requested change explicitly requires a breaking change.
 
 ## ReleaseKit Rules
@@ -40,12 +35,10 @@ Instructions for agents working in this repository. RFC 2119 keywords apply.
 
 - `swift-format` owns source formatting. The checked-in `.swift-format` is the single source of truth; do not hand-format against a remembered house style.
 - Run `swift format --in-place --recursive Sources Tests` before committing, and `swift format lint --strict --recursive Sources Tests` to verify.
-- `AllPublicDeclarationsHaveDocumentation` is enabled, so every public declaration MUST carry a `///` comment. CI fails otherwise.
+- `AllPublicDeclarationsHaveDocumentation` is enabled, so every public declaration must carry a `///` comment. CI fails otherwise.
 
 ## Documentation and Dependencies
 
-- Use Sosumi for current Apple documentation when SwiftUI, platform APIs, or Human Interface Guidelines details matter.
-- Use Context7 for current, version-specific documentation for non-Apple libraries.
 - Keep README examples aligned with public APIs whenever API behavior changes.
 - A minor release may contain a breaking change, marked **Breaking** in `CHANGELOG.md`, so consumers pin exact versions.
 - Use semantic commit messages when committing changes, such as `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, or `chore:`.
